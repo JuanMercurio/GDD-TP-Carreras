@@ -1,0 +1,40 @@
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'GROUPBY4')
+BEGIN
+	EXEC ('CREATE SCHEMA GROUPBY4')
+END
+GO
+
+IF OBJECT_ID('GROUPBY4.Nacionalidad', 'U') IS NOT NULL DROP TABLE GROUPBY4.Nacionalidad;
+IF OBJECT_ID('GROUPBY4.Piloto', 'U') IS NOT NULL DROP TABLE GROUPBY4.Piloto;
+
+CREATE TABLE GROUPBY4.Nacionalidad
+(
+	naci_codigo INT IDENTITY PRIMARY KEY,
+	naci_nombre NVARCHAR(255) NOT NULL
+)
+GO
+
+CREATE TABLE GROUPBY4.Piloto
+(
+	pilo_codigo INT IDENTITY PRIMARY KEY,
+	pilo_nombre NVARCHAR(255) NOT NULL,
+	pilo_apellido NVARCHAR(255) NOT NULL,
+	pilo_nacionalidad INT NOT NULL, -- fk
+	pilo_fecha_nacimiento DATE NOT NULL
+)
+GO
+
+INSERT INTO GROUPBY4.Nacionalidad
+SELECT PILOTO_NACIONALIDAD FROM gd_esquema.Maestra
+union
+SELECT UPPER(ESCUDERIA_NACIONALIDAD) FROM gd_esquema.Maestra
+
+select * from GROUPBY4.Nacionalidad
+
+insert into GROUPBY4.Piloto
+SELECT DISTINCT PILOTO_NOMBRE, PILOTO_APELLIDO, n.naci_codigo, PILOTO_FECHA_NACIMIENTO FROM gd_esquema.Maestra m
+INNER JOIN GROUPBY4.Nacionalidad n ON m.PILOTO_NACIONALIDAD = n.naci_nombre
+
+SELECT DISTINCT PILOTO_NOMBRE, PILOTO_APELLIDO, PILOTO_FECHA_NACIMIENTO, PILOTO_NACIONALIDAD FROM gd_esquema.Maestra m order by 4
+
+SELECT * FROM GROUPBY4.Piloto P INNER JOIN GROUPBY4.Nacionalidad N ON P.pilo_nacionalidad = N.naci_codigo
