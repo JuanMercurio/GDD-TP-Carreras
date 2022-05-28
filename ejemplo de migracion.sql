@@ -6,6 +6,7 @@ GO
 
 IF OBJECT_ID('GROUPBY4.Nacionalidad', 'U') IS NOT NULL DROP TABLE GROUPBY4.Nacionalidad;
 IF OBJECT_ID('GROUPBY4.Piloto', 'U') IS NOT NULL DROP TABLE GROUPBY4.Piloto;
+IF OBJECT_ID('GROUPBY4.Escuderia', 'U') IS NOT NULL DROP TABLE GROUPBY4.Escuderia;
 
 CREATE TABLE GROUPBY4.Nacionalidad
 (
@@ -24,17 +25,41 @@ CREATE TABLE GROUPBY4.Piloto
 )
 GO
 
+CREATE TABLE GROUPBY4.Escuderia
+(
+	escu_codigo INT IDENTITY PRIMARY KEY,
+	escu_nombre NVARCHAR(255) NOT NULL,
+	escu_nacionalidad INT NOT NULL --fk
+)
+GO
+
+CREATE TABLE GROUPBY4.Auto
+(
+	auto_codigo INT IDENTITY PRIMARY KEY,
+	auto_modelo NVARCHAR(255) NOT NULL,
+	auto_numero INT NOT NULL,
+	auto_piloto INT NOT NULL, --fk
+	auto_escuderia INT NOT NULL --fk
+)
+GO
+
 INSERT INTO GROUPBY4.Nacionalidad
 SELECT PILOTO_NACIONALIDAD FROM gd_esquema.Maestra
 union
 SELECT UPPER(ESCUDERIA_NACIONALIDAD) FROM gd_esquema.Maestra
 
-select * from GROUPBY4.Nacionalidad
-
-insert into GROUPBY4.Piloto
+INSERT INTO GROUPBY4.Piloto
 SELECT DISTINCT PILOTO_NOMBRE, PILOTO_APELLIDO, n.naci_codigo, PILOTO_FECHA_NACIMIENTO FROM gd_esquema.Maestra m
 INNER JOIN GROUPBY4.Nacionalidad n ON m.PILOTO_NACIONALIDAD = n.naci_nombre
 
-SELECT DISTINCT PILOTO_NOMBRE, PILOTO_APELLIDO, PILOTO_FECHA_NACIMIENTO, PILOTO_NACIONALIDAD FROM gd_esquema.Maestra m order by 4
+INSERT INTO GROUPBY4.Escuderia
+SELECT DISTINCT ESCUDERIA_NOMBRE, n.naci_codigo FROM gd_esquema.Maestra m
+INNER JOIN GROUPBY4.Nacionalidad n ON UPPER(m.ESCUDERIA_NACIONALIDAD) = n.naci_nombre 
 
-SELECT * FROM GROUPBY4.Piloto P INNER JOIN GROUPBY4.Nacionalidad N ON P.pilo_nacionalidad = N.naci_codigo
+INSERT INTO GROUPBY4.Auto
+SELECT DISTINCT AUTO_MODELO, AUTO_NUMERO, p.pilo_codigo, e.escu_codigo FROM gd_esquema.Maestra m
+INNER JOIN GROUPBY4.Escuderia e
+ON e.escu_nombre = m.ESCUDERIA_NOMBRE
+INNER JOIN GROUPBY4.Piloto p
+ON p.pilo_nombre+p.pilo_apellido = m.PILOTO_NOMBRE+m.PILOTO_APELLIDO
+ORDER BY e.escu_codigo, AUTO_NUMERO
