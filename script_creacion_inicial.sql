@@ -46,7 +46,7 @@ IF OBJECT_ID('GROUPBY4.Pais', 'U') IS NOT NULL DROP TABLE GROUPBY4.Pais;
 
 CREATE TABLE GROUPBY4.Carrera 
 (
-	carr_codigo INT IDENTITY PRIMARY KEY,
+	carr_codigo INT PRIMARY KEY,
 	carr_fecha DATE NOT NULL ,
 	carr_clima NVARCHAR(100) NOT NULL,
 	carr_total_carrera DECIMAL(18, 2) NOT NULL,
@@ -54,6 +54,8 @@ CREATE TABLE GROUPBY4.Carrera
 	carr_circuito INT NOT NULL -- (fk)
 )
 GO
+
+drop table GROUPBY4.Carrera
 
 CREATE TABLE GROUPBY4.Circuito 
 (
@@ -376,4 +378,4 @@ ADD FOREIGN KEY (escu_nacionalidad) REFERENCES GROUPBY4.Nacionalidad(naci_codigo
 ALTER TABLE GROUPBY4.Piloto
 ADD FOREIGN KEY (pilo_nacionalidad) REFERENCES GROUPBY4.Nacionalidad(naci_codigo);
 
-
+go
