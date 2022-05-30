@@ -100,6 +100,17 @@ CREATE TABLE GROUPBY4.Sector
 )
 GO
 
+CREATE TABLE GROUPBY4.Incidente
+(
+	inci_codigo INT IDENTITY PRIMARY KEY,
+	inci_bandera INT NOT NULL,-- fk
+	inci_carrera INT NOT NULL, --fk
+	inci_tipo INT NOT NULL, --fk
+	inci_sector INT  NOT NULL, --fk
+	inci_tiempo  DECIMAL(18, 2) NOT NULL
+)
+GO
+
 INSERT INTO GROUPBY4.Nacionalidad
 SELECT PILOTO_NACIONALIDAD FROM gd_esquema.Maestra
 union
@@ -156,3 +167,20 @@ ON st.sect_tipo_nombre = m.SECTO_TIPO
 INNER JOIN GROUPBY4.Circuito c
 ON c.circ_nombre = m.CIRCUITO_NOMBRE
 ORDER BY 1
+
+INSERT INTO GROUPBY4.Incidente
+SELECT 
+	b.band_codigo, 
+	CODIGO_CARRERA, 
+	i.inci_tipo_codigo, 
+	CODIGO_SECTOR,
+	INCIDENTE_TIEMPO
+FROM gd_esquema.Maestra m
+INNER JOIN GROUPBY4.Bandera b 
+ON m.INCIDENTE_BANDERA = b.band_detalle
+INNER JOIN GROUPBY4.Incidente_Tipo i
+ON m.INCIDENTE_TIPO = i.inci_tipo_detalle
+WHERE INCIDENTE_TIEMPO is not null
+ORDER BY CODIGO_CARRERA
+
+
