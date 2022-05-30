@@ -577,3 +577,15 @@ FROM gd_esquema.Maestra m
 JOIN GROUPBY4.Freno f ON m.TELE_FRENO4_NRO_SERIE = f.freno_nro_serie 
 JOIN GROUPBY4.Telemetria T on m.TELE_AUTO_CODIGO = t.tele_auto
 GO
+
+INSERT INTO GROUPBY4.Nacionalidad
+SELECT (PILOTO_NACIONALIDAD) FROM gd_esquema.Maestra UNION
+SELECT (UPPER (ESCUDERIA_NACIONALIDAD)) FROM gd_esquema.Maestra
+GO
+
+INSERT INTO GROUPBY4.Escuderia
+SELECT DISTINCT
+    m.ESCUDERIA_NOMBRE,
+    n.naci_codigo
+FROM gd_esquema.Maestra m
+JOIN GROUPBY4.Nacionalidad n ON UPPER(m.ESCUDERIA_NACIONALIDAD) = n.naci_nombre;
