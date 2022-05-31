@@ -284,108 +284,8 @@ GO
 
 
 --------------------------------------
------------- FOREING KEYS ------------
---------------------------------------
-
-/*
-
-ALTER TABLE GROUPBY4.Carrera
-ADD FOREIGN KEY (carr_circuito) REFERENCES GROUPBY4.Circuito(circ_codigo);
-
-
-ALTER TABLE GROUPBY4.Circuito
-ADD FOREIGN KEY (circ_pais) REFERENCES GROUPBY4.Pais(pais_codigo);
-
-
-ALTER TABLE GROUPBY4.Sector
-ADD FOREIGN KEY (sect_tipo) REFERENCES GROUPBY4.Sector_Tipo(sect_tipo_codigo)
-
-ALTER TABLE GROUPBY4.Sector
-ADD FOREIGN KEY (sect_circuito) REFERENCES GROUPBY4.Circuito(circ_codigo);
-
-
-ALTER TABLE GROUPBY4.Telemetria
-ADD FOREIGN KEY (tele_auto) REFERENCES GROUPBY4.Auto(auto_codigo);
-
-ALTER TABLE GROUPBY4.Telemetria
-ADD FOREIGN KEY (tele_carrera) REFERENCES GROUPBY4.Carrera(carr_codigo);
-
-ALTER TABLE GROUPBY4.Telemetria
-ADD FOREIGN KEY (tele_sector) REFERENCES GROUPBY4.Sector(sect_codigo);
-
-
-ALTER TABLE GROUPBY4.Caja_Tele
-ADD FOREIGN KEY (caja_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
-
-ALTER TABLE GROUPBY4.Caja_Tele
-ADD FOREIGN KEY (caja_tele_caja) REFERENCES GROUPBY4.Caja(caja_codigo);
-
-
-ALTER TABLE GROUPBY4.Neumatico_Tele
-ADD FOREIGN KEY (neum_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
-
-ALTER TABLE GROUPBY4.Neumatico_Tele
-ADD FOREIGN KEY (neum_tele_neum) REFERENCES GROUPBY4.Neumatico(neum_codigo);
-
-
-ALTER TABLE GROUPBY4.Freno_Tele
-ADD FOREIGN KEY (freno_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
-
-ALTER TABLE GROUPBY4.Freno_Tele
-ADD FOREIGN KEY (freno_tele_freno) REFERENCES GROUPBY4.Freno(freno_codigo);
-
-
-ALTER TABLE GROUPBY4.Motor_Tele
-ADD FOREIGN KEY (motor_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
-
-ALTER TABLE GROUPBY4.Motor_Tele
-ADD FOREIGN KEY (motor_tele_motor) REFERENCES GROUPBY4.Motor(motor_codigo);
-
-
-ALTER TABLE GROUPBY4.Neumatico
-ADD FOREIGN KEY (neum_tipo) REFERENCES GROUPBY4.Neumatico_Tipo(neum_tipo_codigo);
-
-
-ALTER TABLE GROUPBY4.Parada
-ADD FOREIGN KEY (para_carrera) REFERENCES GROUPBY4.Carrera(carr_codigo);
-
-ALTER TABLE GROUPBY4.Parada
-ADD FOREIGN KEY (para_auto) REFERENCES GROUPBY4.Auto(auto_codigo);
-
-
-ALTER TABLE GROUPBY4.Incidente
-ADD FOREIGN KEY (inci_bandera) REFERENCES GROUPBY4.Bandera(band_codigo);
-
-ALTER TABLE GROUPBY4.Incidente
-ADD FOREIGN KEY (inci_carrera) REFERENCES GROUPBY4.Carrera(carr_codigo);
-
-ALTER TABLE GROUPBY4.Incidente
-ADD FOREIGN KEY (inci_tipo) REFERENCES GROUPBY4.Incidente_Tipo(inci_tipo_codigo);
-
-ALTER TABLE GROUPBY4.Incidente
-ADD FOREIGN KEY (inci_sector) REFERENCES GROUPBY4.Sector(sect_codigo);
-
-
-ALTER TABLE GROUPBY4.Auto
-ADD FOREIGN KEY (auto_piloto) REFERENCES GROUPBY4.Piloto(pilo_codigo);
-
-ALTER TABLE GROUPBY4.Auto
-ADD FOREIGN KEY (auto_escuderia) REFERENCES GROUPBY4.Escuderia(escu_codigo);
-
-
-ALTER TABLE GROUPBY4.Escuderia
-ADD FOREIGN KEY (escu_nacionalidad) REFERENCES GROUPBY4.Nacionalidad(naci_codigo);
-
-ALTER TABLE GROUPBY4.Piloto
-ADD FOREIGN KEY (pilo_nacionalidad) REFERENCES GROUPBY4.Nacionalidad(naci_codigo);
-
-*/
-
-
---------------------------------------
 ------------ INSERT DATA -------------
 --------------------------------------
-
 
 INSERT INTO GROUPBY4.Caja
 SELECT DISTINCT 
@@ -438,6 +338,50 @@ SELECT DISTINCT m.TELE_FRENO2_NRO_SERIE, m.TELE_FRENO2_TAMANIO_DISCO FROM gd_esq
 SELECT DISTINCT m.TELE_FRENO3_NRO_SERIE, m.TELE_FRENO3_TAMANIO_DISCO FROM gd_esquema.Maestra m WHERE m.TELE_AUTO_CODIGO IS NOT NULL UNION
 SELECT DISTINCT m.TELE_FRENO4_NRO_SERIE, m.TELE_FRENO4_TAMANIO_DISCO FROM gd_esquema.Maestra m WHERE m.TELE_AUTO_CODIGO IS NOT NULL
 GO
+
+INSERT INTO GROUPBY4.Bandera
+SELECT DISTINCT INCIDENTE_BANDERA FROM gd_esquema.Maestra
+WHERE INCIDENTE_BANDERA IS NOT NULL
+GO
+
+INSERT INTO GROUPBY4.Incidente_Tipo
+SELECT DISTINCT INCIDENTE_TIPO FROM gd_esquema.Maestra
+WHERE INCIDENTE_TIPO IS NOT NULL
+GO
+
+INSERT INTO GROUPBY4.Pais
+SELECT DISTINCT CIRCUITO_PAIS FROM gd_esquema.Maestra
+GO
+
+INSERT INTO GROUPBY4.Circuito
+SELECT DISTINCT CIRCUITO_NOMBRE, pais_codigo FROM gd_esquema.Maestra m
+INNER JOIN GROUPBY4.Pais p
+ON m.CIRCUITO_PAIS = p.pais_nombre
+ORDER BY 1 ASC
+GO
+
+INSERT INTO GROUPBY4.Carrera
+SELECT 
+DISTINCT CODIGO_CARRERA, CARRERA_FECHA, CARRERA_CLIMA, CARRERA_TOTAL_CARRERA, CARRERA_CANT_VUELTAS, c.circ_codigo
+FROM gd_esquema.Maestra m
+INNER JOIN GROUPBY4.Circuito c
+ON c.circ_nombre = m.CIRCUITO_NOMBRE
+ORDER BY 1
+GO
+
+INSERT INTO GROUPBY4.Sector_Tipo
+SELECT DISTINCT SECTO_TIPO FROM gd_esquema.Maestra
+GO
+
+INSERT INTO GROUPBY4.Sector
+SELECT DISTINCT CODIGO_SECTOR, SECTOR_DISTANCIA, st.sect_tipo_codigo,  c.circ_codigo FROM gd_esquema.Maestra m
+INNER JOIN GROUPBY4.Sector_Tipo st
+ON st.sect_tipo_nombre = m.SECTO_TIPO
+INNER JOIN GROUPBY4.Circuito c
+ON c.circ_nombre = m.CIRCUITO_NOMBRE
+ORDER BY 1
+GO
+
 
 
 CREATE FUNCTION GROUPBY4.piloto_nombre_apellido (@id_piloto INT)
@@ -637,53 +581,6 @@ JOIN GROUPBY4.Telemetria T on m.TELE_AUTO_CODIGO = t.tele_auto
 GO
 
 
-
-
-
-INSERT INTO GROUPBY4.Bandera
-SELECT DISTINCT INCIDENTE_BANDERA FROM gd_esquema.Maestra
-WHERE INCIDENTE_BANDERA IS NOT NULL
-GO
-
-INSERT INTO GROUPBY4.Incidente_Tipo
-SELECT DISTINCT INCIDENTE_TIPO FROM gd_esquema.Maestra
-WHERE INCIDENTE_TIPO IS NOT NULL
-GO
-
-INSERT INTO GROUPBY4.Pais
-SELECT DISTINCT CIRCUITO_PAIS FROM gd_esquema.Maestra
-GO
-
-INSERT INTO GROUPBY4.Circuito
-SELECT DISTINCT CIRCUITO_NOMBRE, pais_codigo FROM gd_esquema.Maestra m
-INNER JOIN GROUPBY4.Pais p
-ON m.CIRCUITO_PAIS = p.pais_nombre
-ORDER BY 1 ASC
-GO
-
-INSERT INTO GROUPBY4.Carrera
-SELECT 
-DISTINCT CODIGO_CARRERA, CARRERA_FECHA, CARRERA_CLIMA, CARRERA_TOTAL_CARRERA, CARRERA_CANT_VUELTAS, c.circ_codigo
-FROM gd_esquema.Maestra m
-INNER JOIN GROUPBY4.Circuito c
-ON c.circ_nombre = m.CIRCUITO_NOMBRE
-ORDER BY 1
-GO
-
-INSERT INTO GROUPBY4.Sector_Tipo
-SELECT DISTINCT SECTO_TIPO FROM gd_esquema.Maestra
-GO
-
-INSERT INTO GROUPBY4.Sector
-SELECT DISTINCT CODIGO_SECTOR, SECTOR_DISTANCIA, st.sect_tipo_codigo,  c.circ_codigo FROM gd_esquema.Maestra m
-INNER JOIN GROUPBY4.Sector_Tipo st
-ON st.sect_tipo_nombre = m.SECTO_TIPO
-INNER JOIN GROUPBY4.Circuito c
-ON c.circ_nombre = m.CIRCUITO_NOMBRE
-ORDER BY 1
-GO
-
-
 CREATE FUNCTION GROUPBY4.piloto_obtener_auto(@nombre NVARCHAR(255), @apellido NVARCHAR(255))
 	RETURNS INT
 BEGIN
@@ -697,7 +594,6 @@ BEGIN
 END
 GO
 
-
 CREATE FUNCTION GROUPBY4.obtener_id_neum (@nro_serie NVARCHAR(255))
 	RETURNS INT
 BEGIN
@@ -709,6 +605,7 @@ BEGIN
 	RETURN @id
 END
 GO
+
 
 DECLARE cursor_paradas_neumaticos CURSOR FOR 
 SELECT 
@@ -818,3 +715,98 @@ DROP FUNCTION GROUPBY4.escuderia_obtener
 DROP FUNCTION GROUPBY4.piloto_nombre_apellido
 DROP FUNCTION GROUPBY4.obtener_id_neum
 DROP FUNCTION GROUPBY4.piloto_obtener_auto
+
+
+--------------------------------------
+------------ FOREING KEYS ------------
+--------------------------------------
+
+ALTER TABLE GROUPBY4.Carrera
+ADD FOREIGN KEY (carr_circuito) REFERENCES GROUPBY4.Circuito(circ_codigo);
+
+
+ALTER TABLE GROUPBY4.Circuito
+ADD FOREIGN KEY (circ_pais) REFERENCES GROUPBY4.Pais(pais_codigo);
+
+
+ALTER TABLE GROUPBY4.Sector
+ADD FOREIGN KEY (sect_tipo) REFERENCES GROUPBY4.Sector_Tipo(sect_tipo_codigo)
+
+ALTER TABLE GROUPBY4.Sector
+ADD FOREIGN KEY (sect_circuito) REFERENCES GROUPBY4.Circuito(circ_codigo);
+
+
+ALTER TABLE GROUPBY4.Telemetria
+ADD FOREIGN KEY (tele_auto) REFERENCES GROUPBY4.Auto(auto_codigo);
+
+ALTER TABLE GROUPBY4.Telemetria
+ADD FOREIGN KEY (tele_carrera) REFERENCES GROUPBY4.Carrera(carr_codigo);
+
+ALTER TABLE GROUPBY4.Telemetria
+ADD FOREIGN KEY (tele_sector) REFERENCES GROUPBY4.Sector(sect_codigo);
+
+
+ALTER TABLE GROUPBY4.Caja_Tele
+ADD FOREIGN KEY (caja_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
+
+ALTER TABLE GROUPBY4.Caja_Tele
+ADD FOREIGN KEY (caja_tele_caja) REFERENCES GROUPBY4.Caja(caja_codigo);
+
+
+ALTER TABLE GROUPBY4.Neumatico_Tele
+ADD FOREIGN KEY (neum_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
+
+ALTER TABLE GROUPBY4.Neumatico_Tele
+ADD FOREIGN KEY (neum_tele_neum) REFERENCES GROUPBY4.Neumatico(neum_codigo);
+
+
+ALTER TABLE GROUPBY4.Freno_Tele
+ADD FOREIGN KEY (freno_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
+
+ALTER TABLE GROUPBY4.Freno_Tele
+ADD FOREIGN KEY (freno_tele_freno) REFERENCES GROUPBY4.Freno(freno_codigo);
+
+
+ALTER TABLE GROUPBY4.Motor_Tele
+ADD FOREIGN KEY (motor_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
+
+ALTER TABLE GROUPBY4.Motor_Tele
+ADD FOREIGN KEY (motor_tele_motor) REFERENCES GROUPBY4.Motor(motor_codigo);
+
+
+ALTER TABLE GROUPBY4.Neumatico
+ADD FOREIGN KEY (neum_tipo) REFERENCES GROUPBY4.Neumatico_Tipo(neum_tipo_codigo);
+
+
+ALTER TABLE GROUPBY4.Parada
+ADD FOREIGN KEY (para_carrera) REFERENCES GROUPBY4.Carrera(carr_codigo);
+
+ALTER TABLE GROUPBY4.Parada
+ADD FOREIGN KEY (para_auto) REFERENCES GROUPBY4.Auto(auto_codigo);
+
+
+ALTER TABLE GROUPBY4.Incidente
+ADD FOREIGN KEY (inci_bandera) REFERENCES GROUPBY4.Bandera(band_codigo);
+
+ALTER TABLE GROUPBY4.Incidente
+ADD FOREIGN KEY (inci_carrera) REFERENCES GROUPBY4.Carrera(carr_codigo);
+
+ALTER TABLE GROUPBY4.Incidente
+ADD FOREIGN KEY (inci_tipo) REFERENCES GROUPBY4.Incidente_Tipo(inci_tipo_codigo);
+
+ALTER TABLE GROUPBY4.Incidente
+ADD FOREIGN KEY (inci_sector) REFERENCES GROUPBY4.Sector(sect_codigo);
+
+
+ALTER TABLE GROUPBY4.Auto
+ADD FOREIGN KEY (auto_piloto) REFERENCES GROUPBY4.Piloto(pilo_codigo);
+
+ALTER TABLE GROUPBY4.Auto
+ADD FOREIGN KEY (auto_escuderia) REFERENCES GROUPBY4.Escuderia(escu_codigo);
+
+
+ALTER TABLE GROUPBY4.Escuderia
+ADD FOREIGN KEY (escu_nacionalidad) REFERENCES GROUPBY4.Nacionalidad(naci_codigo);
+
+ALTER TABLE GROUPBY4.Piloto
+ADD FOREIGN KEY (pilo_nacionalidad) REFERENCES GROUPBY4.Nacionalidad(naci_codigo);
