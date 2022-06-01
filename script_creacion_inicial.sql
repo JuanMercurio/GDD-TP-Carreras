@@ -208,7 +208,7 @@ CREATE TABLE GROUPBY4.Cambio_Neumatico
 	camb_parada INT NOT NULL -- (FK)
 )
 GO
-
+/*
 CREATE TABLE GROUPBY4.Incidente
 (
 	inci_codigo INT IDENTITY PRIMARY KEY,
@@ -221,14 +221,24 @@ CREATE TABLE GROUPBY4.Incidente
 	inci_nro_vuelta DECIMAL(18, 0) NOT NULL
 )
 GO
+*/
 
+CREATE TABLE GROUPBY4.Incidente
+(
+	inci_codigo INT IDENTITY PRIMARY KEY,
+	inci_bandera INT NOT NULL,-- fk
+	inci_carrera INT NOT NULL, --fk
+	inci_sector INT  NOT NULL, --fk
+	inci_tiempo  DECIMAL(18, 2) NOT NULL,
+)
+GO
 
 CREATE TABLE GROUPBY4.Involucrados_Incidente
 (
-	invo_incidente INT NOT NULL,
-	invo_auto INT NOT NULL,
-	invo_nro_vuelta DECIMAL(18, 0) NOT NULL,
-	invo_inci_tipo INT NOT NULL, -- fk
+	invo_incidente INT,
+	invo_auto INT ,
+	invo_nro_vuelta DECIMAL(18, 0) ,
+	invo_inci_tipo INT , -- fk
 	PRIMARY KEY(invo_incidente, invo_auto)
 )
 GO
@@ -314,6 +324,7 @@ SELECT DISTINCT	m.NEUMATICO3_NRO_SERIE_VIEJO, m.NEUMATICO3_TIPO_VIEJO FROM gd_es
 SELECT DISTINCT	m.NEUMATICO4_NRO_SERIE_VIEJO, m.NEUMATICO4_TIPO_VIEJO FROM gd_esquema.Maestra m	WHERE m.NEUMATICO4_NRO_SERIE_VIEJO IS NOT NULL 
 GO
 
+
 INSERT INTO GROUPBY4.Neumatico_Tipo
 SELECT 
 	n.TIPO
@@ -331,6 +342,7 @@ GO
 
 DROP VIEW GROUPBY4.VistaNeumaticos
 GO
+
 
 INSERT INTO GROUPBY4.Freno
 SELECT DISTINCT m.TELE_FRENO1_NRO_SERIE, m.TELE_FRENO1_TAMANIO_DISCO FROM gd_esquema.Maestra m WHERE m.TELE_AUTO_CODIGO IS NOT NULL UNION
@@ -479,6 +491,7 @@ FROM gd_esquema.Maestra M
 JOIN GROUPBY4.Caja c ON m.TELE_CAJA_NRO_SERIE = c.caja_nro_serie
 JOIN GROUPBY4.Telemetria t ON m.TELE_AUTO_CODIGO = t.tele_auto
 GO
+
 
 INSERT INTO GROUPBY4.Neumatico_Tele
 SELECT DISTINCT
@@ -688,8 +701,10 @@ END
 
 CLOSE cursor_paradas_neumaticos
 DEALLOCATE cursor_paradas_neumaticos
+GO
 
 -- Esto seria si decidimos hacer solo una tabla para la info de incidentes
+/*
 INSERT INTO GROUPBY4.Incidente
 SELECT 
 	b.band_codigo, 
@@ -705,6 +720,115 @@ ON m.INCIDENTE_BANDERA = b.band_detalle
 INNER JOIN GROUPBY4.Incidente_Tipo i
 ON m.INCIDENTE_TIPO = i.inci_tipo_detalle
 WHERE INCIDENTE_TIEMPO is not null
+*/
+
+-----------------------------------------------------------------------------
+
+
+CREATE FUNCTION GROUPBY4.incidente_existe(@CODIGO_CARRERA INT, @CODIGO_SECTOR INT, @INCIDENTE_BANDERA NVARCHAR(255), @INCIDENTE_TIEMPO DECIMAL(18,2))
+	RETURNS INT
+BEGIN
+	DECLARE @CANTIDAD INT
+	SELECT @CANTIDAD = COUNT(*) FROM GROUPBY4.Incidente
+	JOIN GROUPBY4.Bandera b ON band_detalle = @INCIDENTE_BANDERA
+	WHERE inci_carrera = @CODIGO_CARRERA AND
+		  inci_sector = @CODIGO_SECTOR AND
+		  inci_bandera = b.band_codigo AND
+		  inci_tiempo = @INCIDENTE_TIEMPO  --ABS(inci_tiempo - @INCIDENTE_TIEMPO) < 10
+	RETURN @CANTIDAD
+END	  
+GO
+
+
+ CREATE FUNCTION GROUPBY4.incidente_codigo(@CODIGO_CARRERA INT, @CODIGO_SECTOR INT, @INCIDENTE_BANDERA NVARCHAR(255), @INCIDENTE_TIEMPO NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @codigo INT
+
+	SELECT @codigo = I.inci_codigo  FROM GROUPBY4.Incidente I
+	JOIN GROUPBY4.Bandera b ON b.band_detalle = @INCIDENTE_BANDERA
+	WHERE inci_carrera = @CODIGO_CARRERA AND inci_sector = @CODIGO_SECTOR AND
+		  inci_bandera = b.band_codigo AND inci_tiempo = @INCIDENTE_TIEMPO
+
+	RETURN @codigo
+END
+GO
+
+CREATE FUNCTION GROUPBY4.incidente_tipo_codigo (@INCIDENTE_TIPO NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @ID INT
+
+	SELECT @ID = inci_tipo_codigo FROM GROUPBY4.Incidente_Tipo
+	WHERE inci_tipo_detalle = @INCIDENTE_TIPO
+
+	RETURN @ID
+END
+GO
+
+CREATE FUNCTION GROUPBY4.bandera_codigo(@INCIDENTE_BANDERA NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @codigo INT
+	
+	SELECT @codigo = b.band_codigo FROM GROUPBY4.Bandera b
+	WHERE b.band_detalle = @INCIDENTE_BANDERA
+
+	RETURN @codigo
+END
+GO
+
+DECLARE c CURSOR FOR 
+SELECT 
+	m.CODIGO_CARRERA,
+	m.CODIGO_SECTOR,
+	m.INCIDENTE_BANDERA, 
+	m.INCIDENTE_NUMERO_VUELTA,
+	m.INCIDENTE_TIEMPO,
+	m.INCIDENTE_TIPO,
+	m.PILOTO_NOMBRE,
+	m.PILOTO_APELLIDO
+FROM gd_esquema.Maestra m
+WHERE INCIDENTE_BANDERA IS NOT NULL
+
+DECLARE @CODIGO_CARRERA INT
+DECLARE @CODIGO_SECTOR INT
+DECLARE @INCIDENTE_BANDERA NVARCHAR(255) 
+DECLARE @INCIDENTE_NUMERO_VUELTA DECIMAL(18,0)
+DECLARE @INCIDENTE_TIEMPO DECIMAL(18,2)
+DECLARE @INCIDENTE_TIPO NVARCHAR(255)
+DECLARE @PILOTO_NOMBRE NVARCHAR(255)
+DECLARE @PILOTO_APELLIDO NVARCHAR(255)
+
+OPEN c
+
+FETCH NEXT FROM c INTO 
+	@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_NUMERO_VUELTA,
+	@INCIDENTE_TIEMPO, @INCIDENTE_TIPO, @PILOTO_NOMBRE, @PILOTO_APELLIDO
+
+DECLARE @incidente_codigo INT
+
+
+WHILE @@FETCH_STATUS = 0 
+BEGIN
+	IF (GROUPBY4.incidente_existe(@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_TIEMPO) = 0)
+	BEGIN
+		INSERT INTO GROUPBY4.Incidente VALUES (GROUPBY4.bandera_codigo(@INCIDENTE_BANDERA), @CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_TIEMPO)
+	END
+	
+	INSERT INTO GROUPBY4.Involucrados_Incidente
+	VALUES (GROUPBY4.incidente_codigo(@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_TIEMPO),
+		    GROUPBY4.piloto_obtener_auto(@PILOTO_NOMBRE, @PILOTO_APELLIDO),
+			@INCIDENTE_NUMERO_VUELTA,
+			GROUPBY4.incidente_tipo_codigo(@INCIDENTE_TIPO))
+
+	FETCH NEXT FROM c INTO 
+		@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_NUMERO_VUELTA,
+		@INCIDENTE_TIEMPO, @INCIDENTE_TIPO, @PILOTO_NOMBRE, @PILOTO_APELLIDO
+END
+
+CLOSE c
+DEALLOCATE c 
 
 
 --------------------------------------
@@ -716,6 +840,10 @@ DROP FUNCTION GROUPBY4.piloto_nombre_apellido
 DROP FUNCTION GROUPBY4.obtener_id_neum
 DROP FUNCTION GROUPBY4.piloto_obtener_auto
 
+DROP FUNCTION GROUPBY4.incidente_tipo_codigo
+DROP FUNCTION GROUPBY4.incidente_codigo
+DROP FUNCTION GROUPBY4.incidente_existe
+DROP FUNCTION GROUPBY4.bandera_codigo
 
 --------------------------------------
 ------------ FOREING KEYS ------------
@@ -791,8 +919,10 @@ ADD FOREIGN KEY (inci_bandera) REFERENCES GROUPBY4.Bandera(band_codigo);
 ALTER TABLE GROUPBY4.Incidente
 ADD FOREIGN KEY (inci_carrera) REFERENCES GROUPBY4.Carrera(carr_codigo);
 
+/*
 ALTER TABLE GROUPBY4.Incidente
 ADD FOREIGN KEY (inci_tipo) REFERENCES GROUPBY4.Incidente_Tipo(inci_tipo_codigo);
+*/
 
 ALTER TABLE GROUPBY4.Incidente
 ADD FOREIGN KEY (inci_sector) REFERENCES GROUPBY4.Sector(sect_codigo);
@@ -810,3 +940,6 @@ ADD FOREIGN KEY (escu_nacionalidad) REFERENCES GROUPBY4.Nacionalidad(naci_codigo
 
 ALTER TABLE GROUPBY4.Piloto
 ADD FOREIGN KEY (pilo_nacionalidad) REFERENCES GROUPBY4.Nacionalidad(naci_codigo);
+
+ALTER TABLE GROUPBY4.Involucrados_Incidente
+ADD FOREIGN KEY (invo_inci_tipo) REFERENCES GROUPBY4.Incidente_Tipo(inci_tipo_codigo);
