@@ -235,10 +235,10 @@ GO
 
 CREATE TABLE GROUPBY4.Involucrados_Incidente
 (
-	invo_incidente INT,
-	invo_auto INT ,
-	invo_nro_vuelta DECIMAL(18, 0) ,
-	invo_inci_tipo INT , -- fk
+	invo_incidente INT NOT NULL,
+	invo_auto INT NOT NULL,
+	invo_nro_vuelta DECIMAL(18, 0) NOT NULL,
+	invo_inci_tipo INT NOT NULL, -- fk
 	PRIMARY KEY(invo_incidente, invo_auto)
 )
 GO
