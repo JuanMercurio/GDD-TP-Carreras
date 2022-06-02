@@ -6,11 +6,10 @@ USE GD1C2022
 GO
 
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'GROUPBY4')
-BEGIN
+BEGIN 
 	EXEC ('CREATE SCHEMA GROUPBY4')
 END
 GO
-
 
 IF OBJECT_ID('GROUPBY4.Involucrados_Incidente', 'U') IS NOT NULL DROP TABLE GROUPBY4.Involucrados_Incidente;
 IF OBJECT_ID('GROUPBY4.Incidente', 'U') IS NOT NULL DROP TABLE GROUPBY4.Incidente;
@@ -208,20 +207,6 @@ CREATE TABLE GROUPBY4.Cambio_Neumatico
 	camb_parada INT NOT NULL -- (FK)
 )
 GO
-/*
-CREATE TABLE GROUPBY4.Incidente
-(
-	inci_codigo INT IDENTITY PRIMARY KEY,
-	inci_bandera INT NOT NULL,-- fk
-	inci_carrera INT NOT NULL, --fk
-	inci_tipo INT NOT NULL, --fk
-	inci_sector INT  NOT NULL, --fk
-	inci_tiempo  DECIMAL(18, 2) NOT NULL,
-	inci_auto INT NOT NULL, --fk
-	inci_nro_vuelta DECIMAL(18, 0) NOT NULL
-)
-GO
-*/
 
 CREATE TABLE GROUPBY4.Incidente
 (
@@ -292,6 +277,124 @@ CREATE TABLE GROUPBY4.Bandera
 )
 GO
 
+--------------------------------------
+------------ FUNCTIONS ---------------
+--------------------------------------
+
+-- Funcion que segun unas condiciones (parametros) retorna si el incidente ya esta registrado en la tabla Incidente
+CREATE FUNCTION GROUPBY4.incidente_existe(@CODIGO_CARRERA INT, @CODIGO_SECTOR INT, @INCIDENTE_BANDERA NVARCHAR(255), @INCIDENTE_TIEMPO DECIMAL(18,2))
+	RETURNS INT
+BEGIN
+	DECLARE @CANTIDAD INT
+	SELECT @CANTIDAD = COUNT(*) FROM GROUPBY4.Incidente
+	JOIN GROUPBY4.Bandera b ON band_detalle = @INCIDENTE_BANDERA
+	WHERE inci_carrera = @CODIGO_CARRERA AND
+		  inci_sector = @CODIGO_SECTOR AND
+		  inci_bandera = b.band_codigo AND
+		  inci_tiempo = @INCIDENTE_TIEMPO
+	RETURN @CANTIDAD
+END	  
+GO
+
+-- Funcion que segun unas condiciones de un incidente retorna el codigo del incidente
+ CREATE FUNCTION GROUPBY4.incidente_codigo(@CODIGO_CARRERA INT, @CODIGO_SECTOR INT, @INCIDENTE_BANDERA NVARCHAR(255), @INCIDENTE_TIEMPO NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @codigo INT
+
+	SELECT @codigo = I.inci_codigo  FROM GROUPBY4.Incidente I
+	JOIN GROUPBY4.Bandera b ON b.band_detalle = @INCIDENTE_BANDERA
+	WHERE inci_carrera = @CODIGO_CARRERA AND inci_sector = @CODIGO_SECTOR AND
+		  inci_bandera = b.band_codigo AND inci_tiempo = @INCIDENTE_TIEMPO
+
+	RETURN @codigo
+END
+GO
+
+-- Funcion que segun el tipo de incidente(cadena) retorna el codigo de ese tipo de accidente
+CREATE FUNCTION GROUPBY4.incidente_tipo_codigo (@INCIDENTE_TIPO NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @ID INT
+
+	SELECT @ID = inci_tipo_codigo FROM GROUPBY4.Incidente_Tipo
+	WHERE inci_tipo_detalle = @INCIDENTE_TIPO
+
+	RETURN @ID
+END
+GO
+
+
+
+-- Funcion que segun una bandera(cadena) retorna el codigo de esa bandera
+CREATE FUNCTION GROUPBY4.bandera_codigo(@INCIDENTE_BANDERA NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @codigo INT
+	
+	SELECT @codigo = b.band_codigo FROM GROUPBY4.Bandera b
+	WHERE b.band_detalle = @INCIDENTE_BANDERA
+
+	RETURN @codigo
+END
+GO
+
+
+
+-- Funcion para obtener el nombre de un piloto segun un id
+CREATE FUNCTION GROUPBY4.piloto_nombre_apellido (@id_piloto INT)
+	RETURNS NVARCHAR(255)
+BEGIN
+	DECLARE @nombre NVARCHAR(255)
+	DECLARE @apellido NVARCHAR(255)
+	
+	SELECT @nombre = pilo_nombre, @apellido = pilo_apellido FROM Piloto 
+	WHERE pilo_codigo = @id_piloto
+	
+	RETURN @nombre + @apellido
+END
+GO
+
+-- Funcion para obtener el nombre de una escuderia segun un id
+CREATE FUNCTION GROUPBY4.escuderia_obtener (@id_escuderia INT)
+	RETURNS NVARCHAR(255)
+BEGIN
+	DECLARE @nombre NVARCHAR(255)
+	
+	SELECT @nombre = escu_nombre FROM Escuderia 
+	WHERE escu_codigo = @id_escuderia
+	
+	RETURN @nombre
+END
+GO
+
+-- Funcion que obtiene el id de un auto que maneja el piloto 
+CREATE FUNCTION GROUPBY4.piloto_obtener_auto(@nombre NVARCHAR(255), @apellido NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @id INT
+
+	SELECT @id = a.auto_codigo FROM GROUPBY4.Auto a
+	JOIN GROUPBY4.Piloto P ON a.auto_piloto = p.pilo_codigo
+	WHERE p.pilo_nombre = @nombre AND p.pilo_apellido = @apellido
+
+	RETURN @id
+END
+GO
+
+-- Funcion que obtiene el id de un neumatico segun su nro de serie
+CREATE FUNCTION GROUPBY4.obtener_id_neum (@nro_serie NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @id NVARCHAR(255)
+
+	SELECT @id = neum_codigo FROM GROUPBY4.Neumatico
+	WHERE neum_nro_serie = @nro_serie
+
+	RETURN @id
+END
+GO
+
 
 --------------------------------------
 ------------ INSERT DATA -------------
@@ -313,6 +416,7 @@ FROM gd_esquema.Maestra m
 WHERE m.TELE_AUTO_CODIGO IS NOT NULL
 GO
 
+-- Crea una vista con todos los neumaticos para luego insertar los datos en Neumatico_Tipo y Neumatico
 CREATE VIEW GROUPBY4.VistaNeumaticos AS
 SELECT DISTINCT	m.NEUMATICO1_NRO_SERIE_NUEVO NEUMATICO, m.NEUMATICO1_TIPO_NUEVO TIPO FROM gd_esquema.Maestra m WHERE m.NEUMATICO1_NRO_SERIE_NUEVO IS NOT NULL UNION
 SELECT DISTINCT	m.NEUMATICO2_NRO_SERIE_NUEVO, m.NEUMATICO2_TIPO_NUEVO FROM gd_esquema.Maestra m WHERE m.NEUMATICO2_NRO_SERIE_NUEVO IS NOT NULL UNION
@@ -323,7 +427,6 @@ SELECT DISTINCT	m.NEUMATICO2_NRO_SERIE_VIEJO, m.NEUMATICO2_TIPO_VIEJO FROM gd_es
 SELECT DISTINCT	m.NEUMATICO3_NRO_SERIE_VIEJO, m.NEUMATICO3_TIPO_VIEJO FROM gd_esquema.Maestra m WHERE m.NEUMATICO3_NRO_SERIE_VIEJO IS NOT NULL UNION
 SELECT DISTINCT	m.NEUMATICO4_NRO_SERIE_VIEJO, m.NEUMATICO4_TIPO_VIEJO FROM gd_esquema.Maestra m	WHERE m.NEUMATICO4_NRO_SERIE_VIEJO IS NOT NULL 
 GO
-
 
 INSERT INTO GROUPBY4.Neumatico_Tipo
 SELECT 
@@ -340,6 +443,7 @@ FROM GROUPBY4.VistaNeumaticos n
 JOIN GROUPBY4.Neumatico_Tipo t ON n.TIPO = t.neum_tipo_detalle
 GO
 
+-- No se necesita mas la vista. Es eliminada
 DROP VIEW GROUPBY4.VistaNeumaticos
 GO
 
@@ -394,32 +498,6 @@ ON c.circ_nombre = m.CIRCUITO_NOMBRE
 ORDER BY 1
 GO
 
-
-
-CREATE FUNCTION GROUPBY4.piloto_nombre_apellido (@id_piloto INT)
-	RETURNS NVARCHAR(255)
-BEGIN
-	DECLARE @nombre NVARCHAR(255)
-	DECLARE @apellido NVARCHAR(255)
-	
-	SELECT @nombre = pilo_nombre, @apellido = pilo_apellido FROM Piloto 
-	WHERE pilo_codigo = @id_piloto
-	
-	RETURN @nombre + @apellido
-END
-GO
-
-CREATE FUNCTION GROUPBY4.escuderia_obtener (@id_escuderia INT)
-	RETURNS NVARCHAR(255)
-BEGIN
-	DECLARE @nombre NVARCHAR(255)
-	
-	SELECT @nombre = escu_nombre FROM Escuderia 
-	WHERE escu_codigo = @id_escuderia
-	
-	RETURN @nombre
-END
-GO
 
 INSERT INTO GROUPBY4.Nacionalidad
 SELECT PILOTO_NACIONALIDAD FROM gd_esquema.Maestra
@@ -593,33 +671,7 @@ JOIN GROUPBY4.Freno f ON m.TELE_FRENO4_NRO_SERIE = f.freno_nro_serie
 JOIN GROUPBY4.Telemetria T on m.TELE_AUTO_CODIGO = t.tele_auto
 GO
 
-
-CREATE FUNCTION GROUPBY4.piloto_obtener_auto(@nombre NVARCHAR(255), @apellido NVARCHAR(255))
-	RETURNS INT
-BEGIN
-	DECLARE @id INT
-
-	SELECT @id = a.auto_codigo FROM GROUPBY4.Auto a
-	JOIN GROUPBY4.Piloto P ON a.auto_piloto = p.pilo_codigo
-	WHERE p.pilo_nombre = @nombre AND p.pilo_apellido = @apellido
-
-	RETURN @id
-END
-GO
-
-CREATE FUNCTION GROUPBY4.obtener_id_neum (@nro_serie NVARCHAR(255))
-	RETURNS INT
-BEGIN
-	DECLARE @id NVARCHAR(255)
-
-	SELECT @id = neum_codigo FROM GROUPBY4.Neumatico
-	WHERE neum_nro_serie = @nro_serie
-
-	RETURN @id
-END
-GO
-
-
+-- Declaramos cursor para insertar datos en Parada y Cambio_Neumatico al mismo tiempo
 DECLARE cursor_paradas_neumaticos CURSOR FOR 
 SELECT 
 	m.PARADA_BOX_TIEMPO,
@@ -703,82 +755,8 @@ CLOSE cursor_paradas_neumaticos
 DEALLOCATE cursor_paradas_neumaticos
 GO
 
--- Esto seria si decidimos hacer solo una tabla para la info de incidentes
-/*
-INSERT INTO GROUPBY4.Incidente
-SELECT 
-	b.band_codigo, 
-	CODIGO_CARRERA, 
-	i.inci_tipo_codigo, 
-	CODIGO_SECTOR,
-	INCIDENTE_TIEMPO,
-	GROUPBY4.piloto_obtener_auto(m.PILOTO_NOMBRE, m.PILOTO_APELLIDO),
-	m.INCIDENTE_NUMERO_VUELTA
-FROM gd_esquema.Maestra m
-INNER JOIN GROUPBY4.Bandera b 
-ON m.INCIDENTE_BANDERA = b.band_detalle
-INNER JOIN GROUPBY4.Incidente_Tipo i
-ON m.INCIDENTE_TIPO = i.inci_tipo_detalle
-WHERE INCIDENTE_TIEMPO is not null
-*/
-
------------------------------------------------------------------------------
-
-
-CREATE FUNCTION GROUPBY4.incidente_existe(@CODIGO_CARRERA INT, @CODIGO_SECTOR INT, @INCIDENTE_BANDERA NVARCHAR(255), @INCIDENTE_TIEMPO DECIMAL(18,2))
-	RETURNS INT
-BEGIN
-	DECLARE @CANTIDAD INT
-	SELECT @CANTIDAD = COUNT(*) FROM GROUPBY4.Incidente
-	JOIN GROUPBY4.Bandera b ON band_detalle = @INCIDENTE_BANDERA
-	WHERE inci_carrera = @CODIGO_CARRERA AND
-		  inci_sector = @CODIGO_SECTOR AND
-		  inci_bandera = b.band_codigo AND
-		  inci_tiempo = @INCIDENTE_TIEMPO  --ABS(inci_tiempo - @INCIDENTE_TIEMPO) < 10
-	RETURN @CANTIDAD
-END	  
-GO
-
-
- CREATE FUNCTION GROUPBY4.incidente_codigo(@CODIGO_CARRERA INT, @CODIGO_SECTOR INT, @INCIDENTE_BANDERA NVARCHAR(255), @INCIDENTE_TIEMPO NVARCHAR(255))
-	RETURNS INT
-BEGIN
-	DECLARE @codigo INT
-
-	SELECT @codigo = I.inci_codigo  FROM GROUPBY4.Incidente I
-	JOIN GROUPBY4.Bandera b ON b.band_detalle = @INCIDENTE_BANDERA
-	WHERE inci_carrera = @CODIGO_CARRERA AND inci_sector = @CODIGO_SECTOR AND
-		  inci_bandera = b.band_codigo AND inci_tiempo = @INCIDENTE_TIEMPO
-
-	RETURN @codigo
-END
-GO
-
-CREATE FUNCTION GROUPBY4.incidente_tipo_codigo (@INCIDENTE_TIPO NVARCHAR(255))
-	RETURNS INT
-BEGIN
-	DECLARE @ID INT
-
-	SELECT @ID = inci_tipo_codigo FROM GROUPBY4.Incidente_Tipo
-	WHERE inci_tipo_detalle = @INCIDENTE_TIPO
-
-	RETURN @ID
-END
-GO
-
-CREATE FUNCTION GROUPBY4.bandera_codigo(@INCIDENTE_BANDERA NVARCHAR(255))
-	RETURNS INT
-BEGIN
-	DECLARE @codigo INT
-	
-	SELECT @codigo = b.band_codigo FROM GROUPBY4.Bandera b
-	WHERE b.band_detalle = @INCIDENTE_BANDERA
-
-	RETURN @codigo
-END
-GO
-
-DECLARE c CURSOR FOR 
+-- Declaramos cursor para insertar datos en Incidente y Involucrados_Incidente
+DECLARE incidentes_cursor CURSOR FOR 
 SELECT 
 	m.CODIGO_CARRERA,
 	m.CODIGO_SECTOR,
@@ -800,9 +778,9 @@ DECLARE @INCIDENTE_TIPO NVARCHAR(255)
 DECLARE @PILOTO_NOMBRE NVARCHAR(255)
 DECLARE @PILOTO_APELLIDO NVARCHAR(255)
 
-OPEN c
+OPEN incidentes_cursor
 
-FETCH NEXT FROM c INTO 
+FETCH NEXT FROM incidentes_cursor INTO 
 	@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_NUMERO_VUELTA,
 	@INCIDENTE_TIEMPO, @INCIDENTE_TIPO, @PILOTO_NOMBRE, @PILOTO_APELLIDO
 
@@ -822,13 +800,13 @@ BEGIN
 			@INCIDENTE_NUMERO_VUELTA,
 			GROUPBY4.incidente_tipo_codigo(@INCIDENTE_TIPO))
 
-	FETCH NEXT FROM c INTO 
+	FETCH NEXT FROM incidentes_cursor INTO 
 		@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_NUMERO_VUELTA,
 		@INCIDENTE_TIEMPO, @INCIDENTE_TIPO, @PILOTO_NOMBRE, @PILOTO_APELLIDO
 END
 
-CLOSE c
-DEALLOCATE c 
+CLOSE incidentes_cursor
+DEALLOCATE incidentes_cursor
 
 
 --------------------------------------
@@ -839,7 +817,6 @@ DROP FUNCTION GROUPBY4.escuderia_obtener
 DROP FUNCTION GROUPBY4.piloto_nombre_apellido
 DROP FUNCTION GROUPBY4.obtener_id_neum
 DROP FUNCTION GROUPBY4.piloto_obtener_auto
-
 DROP FUNCTION GROUPBY4.incidente_tipo_codigo
 DROP FUNCTION GROUPBY4.incidente_codigo
 DROP FUNCTION GROUPBY4.incidente_existe
