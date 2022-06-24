@@ -19,28 +19,6 @@ GO
 ------------- FUNCTIONS --------------
 --------------------------------------
 
-CREATE FUNCTION GROUPBY4.cuatrimestre(@fecha SMALLDATETIME)
-	RETURNS CHAR(4)
-BEGIN
-	DECLARE @cuatrimestre INT
-	SET @cuatrimestre = 0
-
-	IF (MONTH(@fecha) > 0)
-		SET @cuatrimestre = @cuatrimestre + 1
-
-	IF (MONTH(@fecha) > 3)
-		SET @cuatrimestre = @cuatrimestre + 1
-
-	IF (MONTH(@fecha) > 6)
-		SET @cuatrimestre = @cuatrimestre + 1
-
-	IF (MONTH(@fecha) > 9)
-		SET @cuatrimestre = @cuatrimestre + 1
-	
-	RETURN @cuatrimestre
-	
-END
-GO
 
 --------------------------------------
 ----------- BI_Incidente -------------
@@ -62,7 +40,7 @@ GO
 INSERT INTO GROUPBY4.BI_Incidente
 SELECT
 	YEAR(c.carr_fecha),
-	GROUPBY4.cuatrimestre(c.carr_fecha),
+	DATEPART(q, c.carr_fecha), --cambiar por dimension tiempo
 	ii.invo_auto,
 	a.auto_escuderia,
 	c.carr_circuito,
@@ -106,7 +84,7 @@ CREATE TABLE GROUPBY4.BI_Parada
 INSERT INTO GROUPBY4.BI_Parada
 SELECT 
 	YEAR(c.carr_fecha),
-	GROUPBY4.cuatrimestre(c.carr_fecha),
+	DATEPART(Q, c.carr_fecha), --cambiar por dimension tiempo
 	a.auto_codigo,
 	a.auto_escuderia,
 	c.carr_circuito,
@@ -189,7 +167,6 @@ GO
 --------------- DROPS ----------------
 --------------------------------------
 
-DROP FUNCTION GROUPBY4.cuatrimestre
 
 DROP VIEW GROUPBY4.Circuitos_Mas_Peligrosos
 DROP VIEW GROUPBY4.Incidentes_Escuderia_Tipo_Sector
