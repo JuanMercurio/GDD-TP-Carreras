@@ -194,7 +194,7 @@ CREATE VIEW GROUPBY4.Desgaste_promedio_componente AS
 SELECT 
 	componente_tipo,
 	auto_codigo,
-	circ_codigo,
+	circ_nombre,
 	vuelta_numero,
 	desgaste
 FROM GROUPBY4.BI_Fact_desgaste
@@ -208,7 +208,6 @@ INNER JOIN GROUPBY4.BI_Vuelta
 ON desgaste_vuelta = BI_Vuelta_codigo
 WHERE desgaste IS NOT NULL
 GO
-
 
 ------------------------------------------- drop de tablas 
 DROP TABLE GROUPBY4.BI_Componente
