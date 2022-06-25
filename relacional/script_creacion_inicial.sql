@@ -1,0 +1,1032 @@
+--------------------------------------
+---------------- INIT ----------------
+--------------------------------------
+
+USE GD1C2022
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'GROUPBY4')
+BEGIN 
+	EXEC ('CREATE SCHEMA GROUPBY4')
+END
+GO
+
+IF OBJECT_ID('GROUPBY4.Involucrados_Incidente', 'U') IS NOT NULL DROP TABLE GROUPBY4.Involucrados_Incidente;
+IF OBJECT_ID('GROUPBY4.Incidente', 'U') IS NOT NULL DROP TABLE GROUPBY4.Incidente;
+IF OBJECT_ID('GROUPBY4.Cambio_Neumatico', 'U') IS NOT NULL DROP TABLE GROUPBY4.Cambio_Neumatico;
+IF OBJECT_ID('GROUPBY4.Parada', 'U') IS NOT NULL DROP TABLE GROUPBY4.Parada;
+IF OBJECT_ID('GROUPBY4.Motor_Tele', 'U') IS NOT NULL DROP TABLE GROUPBY4.Motor_Tele;
+IF OBJECT_ID('GROUPBY4.Freno_Tele', 'U') IS NOT NULL DROP TABLE GROUPBY4.Freno_Tele;
+IF OBJECT_ID('GROUPBY4.Neumatico_Tele', 'U') IS NOT NULL DROP TABLE GROUPBY4.Neumatico_Tele;
+IF OBJECT_ID('GROUPBY4.Caja_Tele', 'U') IS NOT NULL DROP TABLE GROUPBY4.Caja_Tele;
+IF OBJECT_ID('GROUPBY4.Telemetria', 'U') IS NOT NULL DROP TABLE GROUPBY4.Telemetria;
+IF OBJECT_ID('GROUPBY4.Sector', 'U') IS NOT NULL DROP TABLE GROUPBY4.Sector;
+IF OBJECT_ID('GROUPBY4.Carrera', 'U') IS NOT NULL DROP TABLE GROUPBY4.Carrera;
+IF OBJECT_ID('GROUPBY4.Sector_Tipo', 'U') IS NOT NULL DROP TABLE GROUPBY4.Sector_Tipo;
+IF OBJECT_ID('GROUPBY4.Caja', 'U') IS NOT NULL DROP TABLE GROUPBY4.Caja;
+IF OBJECT_ID('GROUPBY4.Motor', 'U') IS NOT NULL DROP TABLE GROUPBY4.Motor;
+IF OBJECT_ID('GROUPBY4.Neumatico', 'U') IS NOT NULL DROP TABLE GROUPBY4.Neumatico;
+IF OBJECT_ID('GROUPBY4.Neumatico_Tipo', 'U') IS NOT NULL DROP TABLE GROUPBY4.Neumatico_Tipo;
+IF OBJECT_ID('GROUPBY4.Freno', 'U') IS NOT NULL DROP TABLE GROUPBY4.Freno;
+IF OBJECT_ID('GROUPBY4.Auto', 'U') IS NOT NULL DROP TABLE GROUPBY4.Auto;
+IF OBJECT_ID('GROUPBY4.Incidente_Tipo', 'U') IS NOT NULL DROP TABLE GROUPBY4.Incidente_Tipo;
+IF OBJECT_ID('GROUPBY4.Bandera', 'U') IS NOT NULL DROP TABLE GROUPBY4.Bandera;
+IF OBJECT_ID('GROUPBY4.Bandera_Tipo', 'U') IS NOT NULL DROP TABLE GROUPBY4.Bandera_Tipo;
+IF OBJECT_ID('GROUPBY4.Piloto', 'U') IS NOT NULL DROP TABLE GROUPBY4.Piloto;
+IF OBJECT_ID('GROUPBY4.Escuderia', 'U') IS NOT NULL DROP TABLE GROUPBY4.Escuderia;
+IF OBJECT_ID('GROUPBY4.Nacionalidad', 'U') IS NOT NULL DROP TABLE GROUPBY4.Nacionalidad;
+IF OBJECT_ID('GROUPBY4.Circuito', 'U') IS NOT NULL DROP TABLE GROUPBY4.Circuito;
+IF OBJECT_ID('GROUPBY4.Pais', 'U') IS NOT NULL DROP TABLE GROUPBY4.Pais;
+
+
+--------------------------------------
+--------------- TABLES ---------------
+--------------------------------------
+
+CREATE TABLE GROUPBY4.Carrera 
+(
+	carr_codigo INT PRIMARY KEY,
+	carr_fecha DATE NOT NULL ,
+	carr_clima NVARCHAR(100) NOT NULL,
+	carr_total_carrera DECIMAL(18, 2) NOT NULL,
+	carr_cant_vueltas INT NOT NULL,
+	carr_circuito INT NOT NULL -- (fk)
+)
+GO
+
+CREATE TABLE GROUPBY4.Circuito 
+(
+	circ_codigo INT IDENTITY PRIMARY KEY,
+	circ_nombre NVARCHAR(255) NOT NULL,
+	circ_pais INT NOT NULL --(fk)
+)
+GO
+
+CREATE TABLE GROUPBY4.Pais
+(
+	pais_codigo INT IDENTITY PRIMARY KEY,
+	pais_nombre NVARCHAR(255) NOT NULL
+)
+GO
+
+CREATE TABLE GROUPBY4.Sector
+(
+	sect_codigo INT PRIMARY KEY,
+	sect_distancia DECIMAL(18, 2) NOT NULL,
+	sect_tipo INT NOT NULL, -- (fk)
+	sect_circuito INT NOT NULL -- (fk) 
+)
+GO
+
+CREATE TABLE GROUPBY4.Sector_Tipo
+(
+	sect_tipo_codigo INT IDENTITY PRIMARY KEY,
+	sect_tipo_nombre NVARCHAR(255) NOT NULL
+)
+GO
+
+CREATE TABLE GROUPBY4.Telemetria 
+(
+	tele_codigo INT IDENTITY PRIMARY KEY,
+	tele_auto INT NOT NULL, --(fk)
+	tele_carrera INT NOT NULL,--(fk)
+	tele_sector INT NOT NULL,--(fk)
+	 
+	tele_numero_vuelta DECIMAL(18, 0) NOT NULL,
+	tele_distancia_vuelta DECIMAL(18, 2) NOT NULL,
+	tele_distancia_carrera DECIMAL(18, 6) NOT NULL,
+	tele_posicion  DECIMAL(18, 0) NOT NULL,
+	tele_tiempo_vuelta  DECIMAL(18, 10) NOT NULL ,
+	tele_velocidad DECIMAL(18, 2) NOT NULL,
+	tele_combustible DECIMAL(18, 2) NOT NULL
+)
+GO
+
+CREATE TABLE GROUPBY4.Caja_Tele
+(
+	caja_tele_codigo INT NOT NULL, -- fk
+	caja_tele_caja INT NOT NULL, -- fk
+	caja_tele_temp_aceite DECIMAL(18, 2) NOT NULL,
+	caja_tele_rpm DECIMAL(18, 2) NOT NULL,
+	caja_tele_desgaste DECIMAL(18, 2) NOT NULL,
+	PRIMARY KEY(caja_tele_codigo, caja_tele_caja)
+)
+GO
+
+CREATE TABLE GROUPBY4.Neumatico_Tele 
+(
+	neum_tele_codigo INT NOT NULL, -- fk
+	neum_tele_neum INT NOT NULL, -- fk
+	neum_tele_posicion NVARCHAR(255)  NOT NULL,
+	neum_tele_presion DECIMAL(18, 6)  NOT NULL,
+	neum_tele_profundidad DECIMAL(18, 6)  NOT NULL,
+	neum_tele_temperatura DECIMAL(18, 6) NOT NULL,
+	PRIMARY KEY(neum_tele_codigo, neum_tele_neum)
+)
+GO
+
+CREATE TABLE GROUPBY4.Freno_Tele 
+(
+	freno_tele_codigo INT NOT NULL, -- fk
+	freno_tele_freno INT NOT NULL, -- fk
+	freno_tele_posicion NVARCHAR(255) NOT NULL,
+	freno_tele_temperatura DECIMAL(18, 2)  NOT NULL,
+	freno_tele_pastilla DECIMAL(18,2) NOT NULL,
+	PRIMARY KEY(freno_tele_codigo, freno_tele_freno)
+)
+GO
+
+CREATE TABLE GROUPBY4.Motor_Tele 
+(
+	motor_tele_codigo INT NOT NULL, -- fk
+	motor_tele_motor INT NOT NULL, -- fk
+	motor_tele_potencia DECIMAL(18, 6) NOT NULL,
+	motor_tele_rpm DECIMAL(18, 6)  NOT NULL,
+	motor_tele_temp_aceite DECIMAL(18, 6)  NOT NULL,
+	motor_tele_temp_agua DECIMAL(18, 6)  NOT NULL
+	PRIMARY KEY(motor_tele_codigo, motor_tele_motor)
+)
+GO
+
+CREATE TABLE GROUPBY4.Caja ( 
+	caja_codigo INT IDENTITY PRIMARY KEY,
+	caja_nro_serie NVARCHAR(50) NOT NULL,
+	caja_modelo NVARCHAR(50) NOT NULL
+	
+)
+GO
+
+CREATE TABLE GROUPBY4.Neumatico 
+(
+	neum_codigo INT IDENTITY PRIMARY KEY,
+	neum_nro_serie NVARCHAR(50) NOT NULL,
+	neum_tipo INT NOT NULL --fk
+)
+GO
+
+CREATE TABLE GROUPBY4.Neumatico_Tipo
+(
+	neum_tipo_codigo INT IDENTITY PRIMARY KEY,
+	neum_tipo_detalle NVARCHAR(50) NOT NULL
+)
+GO
+
+CREATE TABLE GROUPBY4.Freno
+(
+	freno_codigo INT IDENTITY PRIMARY KEY,
+	freno_nro_serie NVARCHAR(50) NOT NULL,
+	frano_tamanio_disco DECIMAL(18,2) NOT NULL
+)
+GO
+
+CREATE TABLE GROUPBY4.Motor
+(
+	motor_codigo INT IDENTITY PRIMARY KEY,
+	motor_nro_serie NVARCHAR(50) NOT NULL,
+	motor_modelo NVARCHAR(50) NOT NULL
+)
+GO
+
+
+CREATE TABLE GROUPBY4.Parada
+(
+	para_codigo INT PRIMARY KEY,
+	para_tiempo DECIMAL(18, 2) NOT NULL,
+	para_vuelta DECIMAL(18, 0) NOT NULL,
+	para_carrera INT NOT NULL, --fk 
+	para_auto INT NOT NULL --fk 
+)
+GO
+
+CREATE TABLE GROUPBY4.Cambio_Neumatico
+(
+	camb_codigo INT IDENTITY PRIMARY KEY,
+	camb_posicion NVARCHAR(255) NOT NULL,
+	camb_nuevo INT NOT NULL, --(Fk)
+	camb_viejo INT NOT NULL, --(FK)
+	camb_parada INT NOT NULL -- (FK)
+)
+GO
+
+CREATE TABLE GROUPBY4.Incidente
+(
+	inci_codigo INT IDENTITY PRIMARY KEY,
+	inci_bandera INT NOT NULL,-- fk
+	inci_carrera INT NOT NULL, --fk
+	inci_sector INT  NOT NULL, --fk
+	inci_tiempo  DECIMAL(18, 2) NOT NULL,
+)
+GO
+
+CREATE TABLE GROUPBY4.Involucrados_Incidente
+(
+	invo_incidente INT NOT NULL,
+	invo_auto INT NOT NULL,
+	invo_nro_vuelta DECIMAL(18, 0) NOT NULL,
+	invo_inci_tipo INT NOT NULL, -- fk
+	PRIMARY KEY(invo_incidente, invo_auto)
+)
+GO
+
+CREATE TABLE GROUPBY4.Auto
+(
+	auto_codigo INT IDENTITY PRIMARY KEY,
+	auto_modelo NVARCHAR(255) NOT NULL,
+	auto_numero INT NOT NULL,
+	auto_piloto INT NOT NULL, --fk
+	auto_escuderia INT NOT NULL --fk
+)
+GO
+
+CREATE TABLE GROUPBY4.Escuderia
+(
+	escu_codigo INT IDENTITY PRIMARY KEY,
+	escu_nombre NVARCHAR(255) NOT NULL,
+	escu_nacionalidad INT NOT NULL --fk
+)
+GO
+
+CREATE TABLE GROUPBY4.Nacionalidad
+(
+	naci_codigo INT IDENTITY PRIMARY KEY,
+	naci_nombre NVARCHAR(255) NOT NULL
+)
+GO
+
+CREATE TABLE GROUPBY4.Piloto
+(
+	pilo_codigo INT IDENTITY PRIMARY KEY,
+	pilo_nombre NVARCHAR(255) NOT NULL,
+	pilo_apellido NVARCHAR(255) NOT NULL,
+	pilo_nacionalidad INT NOT NULL, -- fk
+	pilo_fecha_nacimiento DATE NOT NULL
+)
+GO
+
+CREATE TABLE GROUPBY4.Incidente_Tipo
+(
+	inci_tipo_codigo INT IDENTITY PRIMARY KEY,
+	inci_tipo_detalle NVARCHAR(255) NOT NULL
+)
+GO
+
+CREATE TABLE GROUPBY4.Bandera
+(
+	band_codigo INT IDENTITY PRIMARY KEY,
+	band_detalle NVARCHAR(255) NOT NULL
+)
+GO
+
+--------------------------------------
+------------ FUNCTIONS ---------------
+--------------------------------------
+
+-- Funcion que segun unas condiciones (parametros) retorna si el incidente ya esta registrado en la tabla Incidente
+CREATE FUNCTION GROUPBY4.incidente_existe(@CODIGO_CARRERA INT, @CODIGO_SECTOR INT, @INCIDENTE_BANDERA NVARCHAR(255), @INCIDENTE_TIEMPO DECIMAL(18,2))
+	RETURNS INT
+BEGIN
+	DECLARE @CANTIDAD INT
+	SELECT @CANTIDAD = COUNT(*) FROM GROUPBY4.Incidente
+	JOIN GROUPBY4.Bandera b ON band_detalle = @INCIDENTE_BANDERA
+	WHERE inci_carrera = @CODIGO_CARRERA AND
+		  inci_sector = @CODIGO_SECTOR AND
+		  inci_bandera = b.band_codigo AND
+		  inci_tiempo = @INCIDENTE_TIEMPO
+	RETURN @CANTIDAD
+END	  
+GO
+
+-- Funcion que segun unas condiciones de un incidente retorna el codigo del incidente
+ CREATE FUNCTION GROUPBY4.incidente_codigo(@CODIGO_CARRERA INT, @CODIGO_SECTOR INT, @INCIDENTE_BANDERA NVARCHAR(255), @INCIDENTE_TIEMPO NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @codigo INT
+
+	SELECT @codigo = I.inci_codigo  FROM GROUPBY4.Incidente I
+	JOIN GROUPBY4.Bandera b ON b.band_detalle = @INCIDENTE_BANDERA
+	WHERE inci_carrera = @CODIGO_CARRERA AND inci_sector = @CODIGO_SECTOR AND
+		  inci_bandera = b.band_codigo AND inci_tiempo = @INCIDENTE_TIEMPO
+
+	RETURN @codigo
+END
+GO
+
+-- Funcion que segun el tipo de incidente(cadena) retorna el codigo de ese tipo de accidente
+CREATE FUNCTION GROUPBY4.incidente_tipo_codigo (@INCIDENTE_TIPO NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @ID INT
+
+	SELECT @ID = inci_tipo_codigo FROM GROUPBY4.Incidente_Tipo
+	WHERE inci_tipo_detalle = @INCIDENTE_TIPO
+
+	RETURN @ID
+END
+GO
+
+-- Funcion que segun una bandera(cadena) retorna el codigo de esa bandera
+CREATE FUNCTION GROUPBY4.bandera_codigo(@INCIDENTE_BANDERA NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @codigo INT
+	
+	SELECT @codigo = b.band_codigo FROM GROUPBY4.Bandera b
+	WHERE b.band_detalle = @INCIDENTE_BANDERA
+
+	RETURN @codigo
+END
+GO
+
+-- Funcion para obtener el nombre de un piloto segun un id
+CREATE FUNCTION GROUPBY4.piloto_nombre_apellido (@id_piloto INT)
+	RETURNS NVARCHAR(255)
+BEGIN
+	DECLARE @nombre NVARCHAR(255)
+	DECLARE @apellido NVARCHAR(255)
+	
+	SELECT @nombre = pilo_nombre, @apellido = pilo_apellido FROM Piloto 
+	WHERE pilo_codigo = @id_piloto
+	
+	RETURN @nombre + @apellido
+END
+GO
+
+-- Funcion para obtener el nombre de una escuderia segun un id
+CREATE FUNCTION GROUPBY4.escuderia_obtener (@id_escuderia INT)
+	RETURNS NVARCHAR(255)
+BEGIN
+	DECLARE @nombre NVARCHAR(255)
+	
+	SELECT @nombre = escu_nombre FROM Escuderia 
+	WHERE escu_codigo = @id_escuderia
+	
+	RETURN @nombre
+END
+GO
+
+-- Funcion que obtiene el id de un auto que maneja el piloto 
+CREATE FUNCTION GROUPBY4.piloto_obtener_auto(@nombre NVARCHAR(255), @apellido NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @id INT
+
+	SELECT @id = a.auto_codigo FROM GROUPBY4.Auto a
+	JOIN GROUPBY4.Piloto P ON a.auto_piloto = p.pilo_codigo
+	WHERE p.pilo_nombre = @nombre AND p.pilo_apellido = @apellido
+
+	RETURN @id
+END
+GO
+
+-- Funcion que obtiene el id de un neumatico segun su nro de serie
+CREATE FUNCTION GROUPBY4.obtener_id_neum (@nro_serie NVARCHAR(255))
+	RETURNS INT
+BEGIN
+	DECLARE @id NVARCHAR(255)
+
+	SELECT @id = neum_codigo FROM GROUPBY4.Neumatico
+	WHERE neum_nro_serie = @nro_serie
+
+	RETURN @id
+END
+GO
+
+
+--------------------------------------
+------------ PROCEDURES --------------
+--------------------------------------
+
+
+CREATE PROCEDURE GROUPBY4.migrar_caja AS
+BEGIN
+	INSERT INTO GROUPBY4.Caja
+	SELECT DISTINCT 
+		 m.TELE_CAJA_NRO_SERIE, 
+		 m.TELE_CAJA_MODELO
+	FROM gd_esquema.Maestra m
+	WHERE m.TELE_AUTO_CODIGO IS NOT NULL
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Motor AS
+BEGIN
+	INSERT INTO GROUPBY4.Motor
+	SELECT DISTINCT 
+		 m.TELE_MOTOR_NRO_SERIE, 
+		 m.TELE_MOTOR_MODELO
+	FROM gd_esquema.Maestra m
+	WHERE m.TELE_AUTO_CODIGO IS NOT NULL
+END
+GO
+
+-- Crea una vista con todos los neumaticos para luego insertar los datos en Neumatico_Tipo y Neumatico
+CREATE VIEW GROUPBY4.VistaNeumaticos AS
+SELECT DISTINCT	m.NEUMATICO1_NRO_SERIE_NUEVO NEUMATICO, m.NEUMATICO1_TIPO_NUEVO TIPO FROM gd_esquema.Maestra m WHERE m.NEUMATICO1_NRO_SERIE_NUEVO IS NOT NULL UNION
+SELECT DISTINCT	m.NEUMATICO2_NRO_SERIE_NUEVO, m.NEUMATICO2_TIPO_NUEVO FROM gd_esquema.Maestra m WHERE m.NEUMATICO2_NRO_SERIE_NUEVO IS NOT NULL UNION
+SELECT DISTINCT	m.NEUMATICO3_NRO_SERIE_NUEVO, m.NEUMATICO3_TIPO_NUEVO FROM gd_esquema.Maestra m WHERE m.NEUMATICO3_NRO_SERIE_NUEVO IS NOT NULL UNION
+SELECT DISTINCT	m.NEUMATICO4_NRO_SERIE_NUEVO, m.NEUMATICO4_TIPO_NUEVO FROM gd_esquema.Maestra m WHERE m.NEUMATICO4_NRO_SERIE_NUEVO IS NOT NULL UNION
+SELECT DISTINCT	m.NEUMATICO1_NRO_SERIE_VIEJO, m.NEUMATICO1_TIPO_VIEJO FROM gd_esquema.Maestra m WHERE m.NEUMATICO1_NRO_SERIE_VIEJO IS NOT NULL UNION
+SELECT DISTINCT	m.NEUMATICO2_NRO_SERIE_VIEJO, m.NEUMATICO2_TIPO_VIEJO FROM gd_esquema.Maestra m WHERE m.NEUMATICO2_NRO_SERIE_VIEJO IS NOT NULL UNION
+SELECT DISTINCT	m.NEUMATICO3_NRO_SERIE_VIEJO, m.NEUMATICO3_TIPO_VIEJO FROM gd_esquema.Maestra m WHERE m.NEUMATICO3_NRO_SERIE_VIEJO IS NOT NULL UNION
+SELECT DISTINCT	m.TELE_NEUMATICO1_NRO_SERIE,  m.NEUMATICO1_TIPO_VIEJO FROM gd_esquema.Maestra m	WHERE m.TELE_AUTO_CODIGO IS NOT NULL UNION
+SELECT DISTINCT	m.TELE_NEUMATICO2_NRO_SERIE,  m.NEUMATICO2_TIPO_VIEJO FROM gd_esquema.Maestra m	WHERE m.TELE_AUTO_CODIGO IS NOT NULL UNION
+SELECT DISTINCT	m.TELE_NEUMATICO3_NRO_SERIE,  m.NEUMATICO3_TIPO_VIEJO FROM gd_esquema.Maestra m	WHERE m.TELE_AUTO_CODIGO IS NOT NULL UNION
+SELECT DISTINCT	m.TELE_NEUMATICO4_NRO_SERIE,  m.NEUMATICO4_TIPO_VIEJO FROM gd_esquema.Maestra m	WHERE m.TELE_AUTO_CODIGO IS NOT NULL 
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Neumatico_Tipo AS
+BEGIN INSERT INTO GROUPBY4.Neumatico_Tipo
+	SELECT 
+		n.TIPO
+	FROM GROUPBY4.VistaNeumaticos N
+	GROUP BY n.TIPO
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Neumatico AS
+BEGIN
+INSERT INTO GROUPBY4.Neumatico
+SELECT
+	n.NEUMATICO,
+	t.neum_tipo_codigo
+FROM GROUPBY4.VistaNeumaticos n
+JOIN GROUPBY4.Neumatico_Tipo t ON n.TIPO = t.neum_tipo_detalle
+END
+GO
+
+
+
+CREATE PROCEDURE GROUPBY4.migrar_Freno AS
+BEGIN
+	INSERT INTO GROUPBY4.Freno
+	SELECT DISTINCT m.TELE_FRENO1_NRO_SERIE, m.TELE_FRENO1_TAMANIO_DISCO FROM gd_esquema.Maestra m WHERE m.TELE_AUTO_CODIGO IS NOT NULL UNION
+	SELECT DISTINCT m.TELE_FRENO2_NRO_SERIE, m.TELE_FRENO2_TAMANIO_DISCO FROM gd_esquema.Maestra m WHERE m.TELE_AUTO_CODIGO IS NOT NULL UNION
+	SELECT DISTINCT m.TELE_FRENO3_NRO_SERIE, m.TELE_FRENO3_TAMANIO_DISCO FROM gd_esquema.Maestra m WHERE m.TELE_AUTO_CODIGO IS NOT NULL UNION
+	SELECT DISTINCT m.TELE_FRENO4_NRO_SERIE, m.TELE_FRENO4_TAMANIO_DISCO FROM gd_esquema.Maestra m WHERE m.TELE_AUTO_CODIGO IS NOT NULL
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Bandera AS
+BEGIN
+	INSERT INTO GROUPBY4.Bandera
+	SELECT DISTINCT INCIDENTE_BANDERA FROM gd_esquema.Maestra
+	WHERE INCIDENTE_BANDERA IS NOT NULL
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Incidente_Tipo AS
+BEGIN
+	INSERT INTO GROUPBY4.Incidente_Tipo
+	SELECT DISTINCT INCIDENTE_TIPO FROM gd_esquema.Maestra
+	WHERE INCIDENTE_TIPO IS NOT NULL
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Pais AS
+BEGIN
+	INSERT INTO GROUPBY4.Pais
+	SELECT DISTINCT CIRCUITO_PAIS FROM gd_esquema.Maestra
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Circuito AS
+BEGIN
+	INSERT INTO GROUPBY4.Circuito
+	SELECT DISTINCT CIRCUITO_NOMBRE, pais_codigo FROM gd_esquema.Maestra m
+	INNER JOIN GROUPBY4.Pais p
+	ON m.CIRCUITO_PAIS = p.pais_nombre
+	ORDER BY 1 ASC
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Carrera AS
+BEGIN
+	INSERT INTO GROUPBY4.Carrera
+	SELECT 
+	DISTINCT CODIGO_CARRERA, CARRERA_FECHA, CARRERA_CLIMA, CARRERA_TOTAL_CARRERA, CARRERA_CANT_VUELTAS, c.circ_codigo
+	FROM gd_esquema.Maestra m
+	INNER JOIN GROUPBY4.Circuito c
+	ON c.circ_nombre = m.CIRCUITO_NOMBRE
+	ORDER BY 1
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Sector_Tipo AS
+BEGIN
+	INSERT INTO GROUPBY4.Sector_Tipo
+	SELECT DISTINCT SECTO_TIPO FROM gd_esquema.Maestra
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Sector AS
+BEGIN
+	INSERT INTO GROUPBY4.Sector
+	SELECT DISTINCT CODIGO_SECTOR, SECTOR_DISTANCIA, st.sect_tipo_codigo,  c.circ_codigo FROM gd_esquema.Maestra m
+	INNER JOIN GROUPBY4.Sector_Tipo st
+	ON st.sect_tipo_nombre = m.SECTO_TIPO
+	INNER JOIN GROUPBY4.Circuito c
+	ON c.circ_nombre = m.CIRCUITO_NOMBRE
+	ORDER BY 1
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Nacionalidad AS
+BEGIN
+	INSERT INTO GROUPBY4.Nacionalidad
+	SELECT PILOTO_NACIONALIDAD FROM gd_esquema.Maestra
+	union
+	SELECT UPPER(ESCUDERIA_NACIONALIDAD) FROM gd_esquema.Maestra
+END
+GO
+CREATE PROCEDURE GROUPBY4.migrar_Piloto AS
+BEGIN
+	INSERT INTO GROUPBY4.Piloto
+	SELECT DISTINCT PILOTO_NOMBRE, PILOTO_APELLIDO, n.naci_codigo, PILOTO_FECHA_NACIMIENTO FROM gd_esquema.Maestra m
+	INNER JOIN GROUPBY4.Nacionalidad n ON m.PILOTO_NACIONALIDAD = n.naci_nombre
+END
+GO
+CREATE PROCEDURE GROUPBY4.migrar_Escuderia AS
+BEGIN
+	INSERT INTO GROUPBY4.Escuderia
+	SELECT DISTINCT ESCUDERIA_NOMBRE, n.naci_codigo FROM gd_esquema.Maestra m
+	INNER JOIN GROUPBY4.Nacionalidad n ON UPPER(m.ESCUDERIA_NACIONALIDAD) = n.naci_nombre 
+END
+GO
+CREATE PROCEDURE GROUPBY4.migrar_Auto AS
+BEGIN
+	INSERT INTO GROUPBY4.Auto
+	SELECT DISTINCT AUTO_MODELO, AUTO_NUMERO, p.pilo_codigo, e.escu_codigo FROM gd_esquema.Maestra m
+	INNER JOIN GROUPBY4.Escuderia e
+	ON e.escu_nombre = m.ESCUDERIA_NOMBRE
+	INNER JOIN GROUPBY4.Piloto p
+	ON p.pilo_nombre+p.pilo_apellido = m.PILOTO_NOMBRE+m.PILOTO_APELLIDO
+	ORDER BY e.escu_codigo, AUTO_NUMERO
+END
+GO
+CREATE PROCEDURE GROUPBY4.migrar_Telemetria AS
+BEGIN
+	INSERT INTO GROUPBY4.Telemetria 
+	SELECT 
+		a.auto_codigo,
+		m.CODIGO_CARRERA,
+		m.CODIGO_SECTOR,
+		m.TELE_AUTO_NUMERO_VUELTA,
+		m.TELE_AUTO_DISTANCIA_VUELTA,
+		m.TELE_AUTO_DISTANCIA_CARRERA,
+		m.TELE_AUTO_POSICION,
+		m.TELE_AUTO_TIEMPO_VUELTA,
+		m.TELE_AUTO_VELOCIDAD,
+		m.TELE_AUTO_COMBUSTIBLE
+	FROM 
+		gd_esquema.Maestra m
+	INNER JOIN GROUPBY4.Auto a
+	ON GROUPBY4.escuderia_obtener(a.auto_escuderia) = m.ESCUDERIA_NOMBRE AND 
+	   GROUPBY4.piloto_nombre_apellido(a.auto_piloto) = m.PILOTO_NOMBRE + m.PILOTO_APELLIDO
+	WHERE m.TELE_AUTO_CODIGO IS NOT NULL
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Motor_Tele AS
+BEGIN
+	INSERT INTO GROUPBY4.Motor_Tele
+	SELECT DISTINCT
+		t.tele_codigo,
+		mo.motor_codigo,
+		m.TELE_MOTOR_POTENCIA,
+		m.TELE_MOTOR_RPM,
+		m.TELE_MOTOR_TEMP_ACEITE,
+		m.TELE_MOTOR_TEMP_AGUA
+	FROM gd_esquema.Maestra M
+	JOIN GROUPBY4.motor mo ON m.TELE_MOTOR_NRO_SERIE = mo.motor_nro_serie
+	JOIN GROUPBY4.Telemetria t ON m.TELE_AUTO_CODIGO = t.tele_auto
+END
+GO
+CREATE PROCEDURE GROUPBY4.migrar_Caja_Tele AS
+BEGIN
+	INSERT INTO GROUPBY4.Caja_Tele
+	SELECT DISTINCT
+		t.tele_codigo,
+		c.caja_codigo,
+		m.TELE_CAJA_TEMP_ACEITE,
+		m.TELE_CAJA_RPM,
+		m.TELE_CAJA_DESGASTE
+	FROM gd_esquema.Maestra M
+	JOIN GROUPBY4.Caja c ON m.TELE_CAJA_NRO_SERIE = c.caja_nro_serie
+	JOIN GROUPBY4.Telemetria t ON m.TELE_AUTO_CODIGO = t.tele_auto
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Neumatico_Tele AS
+BEGIN
+	INSERT INTO GROUPBY4.Neumatico_Tele
+	SELECT DISTINCT
+		t.tele_codigo,
+		n.neum_codigo,
+		m.TELE_NEUMATICO1_POSICION,
+		m.TELE_NEUMATICO1_PRESION,
+		m.TELE_NEUMATICO1_PROFUNDIDAD,
+		m.TELE_NEUMATICO1_TEMPERATURA
+	FROM gd_esquema.Maestra m
+	JOIN GROUPBY4.Neumatico n ON m.TELE_NEUMATICO1_NRO_SERIE = n.neum_nro_serie 
+	JOIN GROUPBY4.Telemetria T on m.TELE_AUTO_CODIGO = t.tele_auto
+	UNION
+	SELECT DISTINCT
+		t.tele_codigo,
+		n.neum_codigo,
+		m.TELE_NEUMATICO2_POSICION,
+		m.TELE_NEUMATICO2_PRESION,
+		m.TELE_NEUMATICO2_PROFUNDIDAD,
+		m.TELE_NEUMATICO2_TEMPERATURA
+	FROM gd_esquema.Maestra m
+	JOIN GROUPBY4.Neumatico n ON m.TELE_NEUMATICO2_NRO_SERIE = n.neum_nro_serie 
+	JOIN GROUPBY4.Telemetria T on m.TELE_AUTO_CODIGO = t.tele_auto
+	UNION
+	SELECT DISTINCT
+		t.tele_codigo,
+		n.neum_codigo,
+		m.TELE_NEUMATICO3_POSICION,
+		m.TELE_NEUMATICO3_PRESION,
+		m.TELE_NEUMATICO3_PROFUNDIDAD,
+		m.TELE_NEUMATICO3_TEMPERATURA
+	FROM gd_esquema.Maestra m
+	JOIN GROUPBY4.Neumatico n ON m.TELE_NEUMATICO3_NRO_SERIE = n.neum_nro_serie 
+	JOIN GROUPBY4.Telemetria T on m.TELE_AUTO_CODIGO = t.tele_auto
+	UNION
+
+	SELECT DISTINCT
+		t.tele_codigo,
+		n.neum_codigo,
+		m.TELE_NEUMATICO4_POSICION,
+		m.TELE_NEUMATICO4_PRESION,
+		m.TELE_NEUMATICO4_PROFUNDIDAD,
+		m.TELE_NEUMATICO4_TEMPERATURA
+	FROM gd_esquema.Maestra m
+	JOIN GROUPBY4.Neumatico n ON m.TELE_NEUMATICO4_NRO_SERIE = n.neum_nro_serie 
+	JOIN GROUPBY4.Telemetria T on m.TELE_AUTO_CODIGO = t.tele_auto
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Freno_Tele AS
+BEGIN
+	INSERT INTO GROUPBY4.Freno_Tele
+	SELECT DISTINCT
+		t.tele_codigo,
+		f.freno_codigo,
+		m.TELE_FRENO1_POSICION,
+		m.TELE_FRENO1_TEMPERATURA,
+		m.TELE_FRENO1_GROSOR_PASTILLA
+	FROM gd_esquema.Maestra m
+	JOIN GROUPBY4.Freno f ON m.TELE_FRENO1_NRO_SERIE = f.freno_nro_serie 
+	JOIN GROUPBY4.Telemetria T on m.TELE_AUTO_CODIGO = t.tele_auto
+	UNION
+	SELECT DISTINCT
+		t.tele_codigo,
+		f.freno_codigo,
+		m.TELE_FRENO2_POSICION,
+		m.TELE_FRENO2_TEMPERATURA,
+		m.TELE_FRENO2_GROSOR_PASTILLA
+	FROM gd_esquema.Maestra m
+	JOIN GROUPBY4.Freno f ON m.TELE_FRENO2_NRO_SERIE = f.freno_nro_serie 
+	JOIN GROUPBY4.Telemetria T on m.TELE_AUTO_CODIGO = t.tele_auto
+	UNION
+	SELECT DISTINCT
+		t.tele_codigo,
+		f.freno_codigo,
+		m.TELE_FRENO3_POSICION,
+		m.TELE_FRENO3_TEMPERATURA,
+		m.TELE_FRENO3_GROSOR_PASTILLA
+	FROM gd_esquema.Maestra m
+	JOIN GROUPBY4.Freno f ON m.TELE_FRENO3_NRO_SERIE = f.freno_nro_serie 
+	JOIN GROUPBY4.Telemetria T on m.TELE_AUTO_CODIGO = t.tele_auto
+	UNION
+	SELECT DISTINCT
+		t.tele_codigo,
+		f.freno_codigo,
+		m.TELE_FRENO4_POSICION,
+		m.TELE_FRENO4_TEMPERATURA,
+		m.TELE_FRENO4_GROSOR_PASTILLA
+	FROM gd_esquema.Maestra m
+	JOIN GROUPBY4.Freno f ON m.TELE_FRENO4_NRO_SERIE = f.freno_nro_serie 
+	JOIN GROUPBY4.Telemetria T on m.TELE_AUTO_CODIGO = t.tele_auto
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Parada_y_Cambio_Neumatico AS
+BEGIN
+	-- Declaramos cursor para insertar datos en Parada y Cambio_Neumatico al mismo tiempo
+	DECLARE cursor_paradas_neumaticos CURSOR FOR 
+	SELECT 
+		m.PARADA_BOX_TIEMPO,
+		m.PARADA_BOX_VUELTA,
+		m.CODIGO_CARRERA,
+		m.PILOTO_APELLIDO,
+		m.PILOTO_NOMBRE,
+		m.NEUMATICO1_NRO_SERIE_NUEVO,
+		m.NEUMATICO2_NRO_SERIE_NUEVO,
+		m.NEUMATICO3_NRO_SERIE_NUEVO,
+		m.NEUMATICO4_NRO_SERIE_NUEVO,
+		m.NEUMATICO1_NRO_SERIE_VIEJO,
+		m.NEUMATICO2_NRO_SERIE_VIEJO,
+		m.NEUMATICO3_NRO_SERIE_VIEJO,
+		m.NEUMATICO4_NRO_SERIE_VIEJO,
+		m.NEUMATICO1_POSICION_NUEVO,
+		m.NEUMATICO2_POSICION_NUEVO,
+		m.NEUMATICO3_POSICION_NUEVO,
+		m.NEUMATICO4_POSICION_NUEVO
+	FROM gd_esquema.Maestra m
+	WHERE m.PARADA_BOX_TIEMPO IS NOT NULL
+
+	OPEN cursor_paradas_neumaticos
+
+	DECLARE @PARADA_BOX_TIEMPO DECIMAL(18,2)
+	DECLARE @PARADA_BOX_VUELTA DECIMAL(18,0)
+	DECLARE @CODIGO_CARRERA INT
+	DECLARE @PILOTO_APELLIDO NVARCHAR(255)
+	DECLARE @PILOTO_NOMBRE NVARCHAR(255)
+	DECLARE @NEUMATICO1_NRO_SERIE_NUEVO NVARCHAR(255)
+	DECLARE @NEUMATICO2_NRO_SERIE_NUEVO	NVARCHAR(255)
+	DECLARE @NEUMATICO3_NRO_SERIE_NUEVO	NVARCHAR(255)
+	DECLARE @NEUMATICO4_NRO_SERIE_NUEVO	NVARCHAR(255)
+	DECLARE @NEUMATICO1_NRO_SERIE_VIEJO	NVARCHAR(255)
+	DECLARE @NEUMATICO2_NRO_SERIE_VIEJO	NVARCHAR(255)
+	DECLARE @NEUMATICO3_NRO_SERIE_VIEJO	NVARCHAR(255)
+	DECLARE @NEUMATICO4_NRO_SERIE_VIEJO	NVARCHAR(255)
+	DECLARE @NEUMATICO1_POSICION_NUEVO 	NVARCHAR(255)
+	DECLARE @NEUMATICO2_POSICION_NUEVO	NVARCHAR(255)
+	DECLARE @NEUMATICO3_POSICION_NUEVO	NVARCHAR(255)
+	DECLARE @NEUMATICO4_POSICION_NUEVO	NVARCHAR(255)
+
+	FETCH NEXT FROM cursor_paradas_neumaticos INTO
+		@PARADA_BOX_TIEMPO,@PARADA_BOX_VUELTA,@CODIGO_CARRERA,@PILOTO_APELLIDO,@PILOTO_NOMBRE,@NEUMATICO1_NRO_SERIE_NUEVO,
+		@NEUMATICO2_NRO_SERIE_NUEVO,@NEUMATICO3_NRO_SERIE_NUEVO,@NEUMATICO4_NRO_SERIE_NUEVO,@NEUMATICO1_NRO_SERIE_VIEJO,
+		@NEUMATICO2_NRO_SERIE_VIEJO,@NEUMATICO3_NRO_SERIE_VIEJO,@NEUMATICO4_NRO_SERIE_VIEJO,@NEUMATICO1_POSICION_NUEVO,
+		@NEUMATICO2_POSICION_NUEVO,@NEUMATICO3_POSICION_NUEVO,@NEUMATICO4_POSICION_NUEVO	 
+
+	DECLARE @parada_codigo INT
+	SET @parada_codigo = 1
+
+	WHILE @@FETCH_STATUS = 0
+
+	BEGIN
+		
+		INSERT INTO GROUPBY4.Parada
+		VALUES (@parada_codigo, @PARADA_BOX_TIEMPO, @PARADA_BOX_VUELTA, @CODIGO_CARRERA, GROUPBY4.piloto_obtener_auto(@PILOTO_NOMBRE, @PILOTO_APELLIDO))
+
+		INSERT INTO GROUPBY4.Cambio_Neumatico
+		VALUES (@NEUMATICO1_POSICION_NUEVO, GROUPBY4.obtener_id_neum(@NEUMATICO1_NRO_SERIE_NUEVO), GROUPBY4.obtener_id_neum(@NEUMATICO1_NRO_SERIE_VIEJO), @parada_codigo)
+		
+		INSERT INTO GROUPBY4.Cambio_Neumatico
+		VALUES (@NEUMATICO2_POSICION_NUEVO, GROUPBY4.obtener_id_neum(@NEUMATICO2_NRO_SERIE_NUEVO), GROUPBY4.obtener_id_neum(@NEUMATICO2_NRO_SERIE_VIEJO), @parada_codigo)
+
+		INSERT INTO GROUPBY4.Cambio_Neumatico
+		VALUES (@NEUMATICO3_POSICION_NUEVO, GROUPBY4.obtener_id_neum(@NEUMATICO3_NRO_SERIE_NUEVO), GROUPBY4.obtener_id_neum(@NEUMATICO3_NRO_SERIE_VIEJO), @parada_codigo)
+
+		INSERT INTO GROUPBY4.Cambio_Neumatico
+		VALUES (@NEUMATICO4_POSICION_NUEVO, GROUPBY4.obtener_id_neum(@NEUMATICO4_NRO_SERIE_NUEVO), GROUPBY4.obtener_id_neum(@NEUMATICO4_NRO_SERIE_VIEJO), @parada_codigo)
+
+		FETCH NEXT FROM cursor_paradas_neumaticos INTO
+			@PARADA_BOX_TIEMPO,@PARADA_BOX_VUELTA,@CODIGO_CARRERA,@PILOTO_APELLIDO,@PILOTO_NOMBRE,@NEUMATICO1_NRO_SERIE_NUEVO,
+			@NEUMATICO2_NRO_SERIE_NUEVO,@NEUMATICO3_NRO_SERIE_NUEVO,@NEUMATICO4_NRO_SERIE_NUEVO,@NEUMATICO1_NRO_SERIE_VIEJO,
+			@NEUMATICO2_NRO_SERIE_VIEJO,@NEUMATICO3_NRO_SERIE_VIEJO,@NEUMATICO4_NRO_SERIE_VIEJO,@NEUMATICO1_POSICION_NUEVO,
+			@NEUMATICO2_POSICION_NUEVO,@NEUMATICO3_POSICION_NUEVO,@NEUMATICO4_POSICION_NUEVO	 
+		
+		SET @parada_codigo = @parada_codigo + 1
+	END
+
+	CLOSE cursor_paradas_neumaticos
+	DEALLOCATE cursor_paradas_neumaticos
+END
+GO
+
+CREATE PROCEDURE GROUPBY4.migrar_Incidente_y_Involucrados_incidente AS
+BEGIN
+	-- Declaramos cursor para insertar datos en Incidente y Involucrados_Incidente
+	DECLARE incidentes_cursor CURSOR FOR 
+	SELECT 
+		m.CODIGO_CARRERA,
+		m.CODIGO_SECTOR,
+		m.INCIDENTE_BANDERA, 
+		m.INCIDENTE_NUMERO_VUELTA,
+		m.INCIDENTE_TIEMPO,
+		m.INCIDENTE_TIPO,
+		m.PILOTO_NOMBRE,
+		m.PILOTO_APELLIDO
+	FROM gd_esquema.Maestra m
+	WHERE INCIDENTE_BANDERA IS NOT NULL
+
+	DECLARE @CODIGO_CARRERA INT
+	DECLARE @CODIGO_SECTOR INT
+	DECLARE @INCIDENTE_BANDERA NVARCHAR(255) 
+	DECLARE @INCIDENTE_NUMERO_VUELTA DECIMAL(18,0)
+	DECLARE @INCIDENTE_TIEMPO DECIMAL(18,2)
+	DECLARE @INCIDENTE_TIPO NVARCHAR(255)
+	DECLARE @PILOTO_NOMBRE NVARCHAR(255)
+	DECLARE @PILOTO_APELLIDO NVARCHAR(255)
+
+	OPEN incidentes_cursor
+
+	FETCH NEXT FROM incidentes_cursor INTO 
+		@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_NUMERO_VUELTA,
+		@INCIDENTE_TIEMPO, @INCIDENTE_TIPO, @PILOTO_NOMBRE, @PILOTO_APELLIDO
+
+	DECLARE @incidente_codigo INT
+
+
+	WHILE @@FETCH_STATUS = 0 
+	BEGIN
+		IF (GROUPBY4.incidente_existe(@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_TIEMPO) = 0)
+		BEGIN
+			INSERT INTO GROUPBY4.Incidente VALUES (GROUPBY4.bandera_codigo(@INCIDENTE_BANDERA), @CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_TIEMPO)
+		END
+		
+		INSERT INTO GROUPBY4.Involucrados_Incidente
+		VALUES (GROUPBY4.incidente_codigo(@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_TIEMPO),
+			    GROUPBY4.piloto_obtener_auto(@PILOTO_NOMBRE, @PILOTO_APELLIDO),
+				@INCIDENTE_NUMERO_VUELTA,
+				GROUPBY4.incidente_tipo_codigo(@INCIDENTE_TIPO))
+
+		FETCH NEXT FROM incidentes_cursor INTO 
+			@CODIGO_CARRERA, @CODIGO_SECTOR, @INCIDENTE_BANDERA, @INCIDENTE_NUMERO_VUELTA,
+			@INCIDENTE_TIEMPO, @INCIDENTE_TIPO, @PILOTO_NOMBRE, @PILOTO_APELLIDO
+	END
+
+	CLOSE incidentes_cursor
+	DEALLOCATE incidentes_cursor
+END
+GO
+
+--------------------------------------
+---------- DATA MIGRATION ------------
+--------------------------------------
+
+BEGIN TRANSACTION 
+	EXECUTE GROUPBY4.migrar_caja
+	EXECUTE GROUPBY4.migrar_Motor
+	EXECUTE GROUPBY4.migrar_Neumatico_Tipo
+	EXECUTE GROUPBY4.migrar_Neumatico
+	EXECUTE GROUPBY4.migrar_Freno
+	EXECUTE GROUPBY4.migrar_Bandera
+	EXECUTE GROUPBY4.migrar_Incidente_Tipo
+	EXECUTE GROUPBY4.migrar_Pais
+	EXECUTE GROUPBY4.migrar_Circuito
+	EXECUTE GROUPBY4.migrar_Carrera
+	EXECUTE GROUPBY4.migrar_Sector_Tipo
+	EXECUTE GROUPBY4.migrar_Sector
+	EXECUTE GROUPBY4.migrar_Nacionalidad
+	EXECUTE GROUPBY4.migrar_Piloto
+	EXECUTE GROUPBY4.migrar_Escuderia
+	EXECUTE GROUPBY4.migrar_Auto
+	EXECUTE GROUPBY4.migrar_Telemetria
+	EXECUTE GROUPBY4.migrar_Motor_Tele
+	EXECUTE GROUPBY4.migrar_Caja_Tele
+	EXECUTE GROUPBY4.migrar_Neumatico_Tele
+	EXECUTE GROUPBY4.migrar_Freno_Tele
+	EXECUTE GROUPBY4.migrar_Parada_y_Cambio_Neumatico
+	EXECUTE GROUPBY4.migrar_Incidente_y_Involucrados_incidente
+COMMIT TRANSACTION
+
+-- No se necesita mas la vista. Es eliminada
+DROP VIEW GROUPBY4.VistaNeumaticos
+GO
+
+--------------------------------------
+---------- PROCEDURE DROPS -----------
+--------------------------------------
+
+DROP PROCEDURE GROUPBY4.migrar_caja
+DROP PROCEDURE GROUPBY4.migrar_Motor
+DROP PROCEDURE GROUPBY4.migrar_Neumatico_Tipo
+DROP PROCEDURE GROUPBY4.migrar_Neumatico
+DROP PROCEDURE GROUPBY4.migrar_Freno
+DROP PROCEDURE GROUPBY4.migrar_Bandera
+DROP PROCEDURE GROUPBY4.migrar_Incidente_Tipo
+DROP PROCEDURE GROUPBY4.migrar_Pais
+DROP PROCEDURE GROUPBY4.migrar_Circuito
+DROP PROCEDURE GROUPBY4.migrar_Carrera
+DROP PROCEDURE GROUPBY4.migrar_Sector_Tipo
+DROP PROCEDURE GROUPBY4.migrar_Sector
+DROP PROCEDURE GROUPBY4.migrar_Nacionalidad
+DROP PROCEDURE GROUPBY4.migrar_Piloto
+DROP PROCEDURE GROUPBY4.migrar_Escuderia
+DROP PROCEDURE GROUPBY4.migrar_Auto
+DROP PROCEDURE GROUPBY4.migrar_Telemetria
+DROP PROCEDURE GROUPBY4.migrar_Motor_Tele
+DROP PROCEDURE GROUPBY4.migrar_Caja_Tele
+DROP PROCEDURE GROUPBY4.migrar_Neumatico_Tele
+DROP PROCEDURE GROUPBY4.migrar_Freno_Tele
+DROP PROCEDURE GROUPBY4.migrar_Parada_y_Cambio_Neumatico
+DROP PROCEDURE GROUPBY4.migrar_Incidente_y_Involucrados_incidente
+
+
+--------------------------------------
+---------- FUNCTION DROPS ------------
+--------------------------------------
+
+DROP FUNCTION GROUPBY4.escuderia_obtener
+DROP FUNCTION GROUPBY4.piloto_nombre_apellido
+DROP FUNCTION GROUPBY4.obtener_id_neum
+DROP FUNCTION GROUPBY4.piloto_obtener_auto
+DROP FUNCTION GROUPBY4.incidente_tipo_codigo
+DROP FUNCTION GROUPBY4.incidente_codigo
+DROP FUNCTION GROUPBY4.incidente_existe
+DROP FUNCTION GROUPBY4.bandera_codigo
+
+--------------------------------------
+------------ FOREING KEYS ------------
+--------------------------------------
+
+ALTER TABLE GROUPBY4.Carrera
+ADD FOREIGN KEY (carr_circuito) REFERENCES GROUPBY4.Circuito(circ_codigo);
+
+
+ALTER TABLE GROUPBY4.Circuito
+ADD FOREIGN KEY (circ_pais) REFERENCES GROUPBY4.Pais(pais_codigo);
+
+
+ALTER TABLE GROUPBY4.Sector
+ADD FOREIGN KEY (sect_tipo) REFERENCES GROUPBY4.Sector_Tipo(sect_tipo_codigo)
+
+ALTER TABLE GROUPBY4.Sector
+ADD FOREIGN KEY (sect_circuito) REFERENCES GROUPBY4.Circuito(circ_codigo);
+
+
+ALTER TABLE GROUPBY4.Telemetria
+ADD FOREIGN KEY (tele_auto) REFERENCES GROUPBY4.Auto(auto_codigo);
+
+ALTER TABLE GROUPBY4.Telemetria
+ADD FOREIGN KEY (tele_carrera) REFERENCES GROUPBY4.Carrera(carr_codigo);
+
+ALTER TABLE GROUPBY4.Telemetria
+ADD FOREIGN KEY (tele_sector) REFERENCES GROUPBY4.Sector(sect_codigo);
+
+
+ALTER TABLE GROUPBY4.Caja_Tele
+ADD FOREIGN KEY (caja_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
+
+ALTER TABLE GROUPBY4.Caja_Tele
+ADD FOREIGN KEY (caja_tele_caja) REFERENCES GROUPBY4.Caja(caja_codigo);
+
+
+ALTER TABLE GROUPBY4.Neumatico_Tele
+ADD FOREIGN KEY (neum_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
+
+ALTER TABLE GROUPBY4.Neumatico_Tele
+ADD FOREIGN KEY (neum_tele_neum) REFERENCES GROUPBY4.Neumatico(neum_codigo);
+
+
+ALTER TABLE GROUPBY4.Freno_Tele
+ADD FOREIGN KEY (freno_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
+
+ALTER TABLE GROUPBY4.Freno_Tele
+ADD FOREIGN KEY (freno_tele_freno) REFERENCES GROUPBY4.Freno(freno_codigo);
+
+
+ALTER TABLE GROUPBY4.Motor_Tele
+ADD FOREIGN KEY (motor_tele_codigo) REFERENCES GROUPBY4.Telemetria(tele_codigo);
+
+ALTER TABLE GROUPBY4.Motor_Tele
+ADD FOREIGN KEY (motor_tele_motor) REFERENCES GROUPBY4.Motor(motor_codigo);
+
+
+ALTER TABLE GROUPBY4.Neumatico
+ADD FOREIGN KEY (neum_tipo) REFERENCES GROUPBY4.Neumatico_Tipo(neum_tipo_codigo);
+
+
+ALTER TABLE GROUPBY4.Parada
+ADD FOREIGN KEY (para_carrera) REFERENCES GROUPBY4.Carrera(carr_codigo);
+
+ALTER TABLE GROUPBY4.Parada
+ADD FOREIGN KEY (para_auto) REFERENCES GROUPBY4.Auto(auto_codigo);
+
+
+ALTER TABLE GROUPBY4.Incidente
+ADD FOREIGN KEY (inci_bandera) REFERENCES GROUPBY4.Bandera(band_codigo);
+
+ALTER TABLE GROUPBY4.Incidente
+ADD FOREIGN KEY (inci_carrera) REFERENCES GROUPBY4.Carrera(carr_codigo);
+
+/*
+ALTER TABLE GROUPBY4.Incidente
+ADD FOREIGN KEY (inci_tipo) REFERENCES GROUPBY4.Incidente_Tipo(inci_tipo_codigo);
+*/
+
+ALTER TABLE GROUPBY4.Incidente
+ADD FOREIGN KEY (inci_sector) REFERENCES GROUPBY4.Sector(sect_codigo);
+
+
+ALTER TABLE GROUPBY4.Auto
+ADD FOREIGN KEY (auto_piloto) REFERENCES GROUPBY4.Piloto(pilo_codigo);
+
+ALTER TABLE GROUPBY4.Auto
+ADD FOREIGN KEY (auto_escuderia) REFERENCES GROUPBY4.Escuderia(escu_codigo);
+
+
+ALTER TABLE GROUPBY4.Escuderia
+ADD FOREIGN KEY (escu_nacionalidad) REFERENCES GROUPBY4.Nacionalidad(naci_codigo);
+
+ALTER TABLE GROUPBY4.Piloto
+ADD FOREIGN KEY (pilo_nacionalidad) REFERENCES GROUPBY4.Nacionalidad(naci_codigo);
+
+ALTER TABLE GROUPBY4.Involucrados_Incidente
+ADD FOREIGN KEY (invo_inci_tipo) REFERENCES GROUPBY4.Incidente_Tipo(inci_tipo_codigo);
+

@@ -26,3 +26,18 @@ IF OBJECT_ID('GROUPBY4.Escuderia', 'U') IS NOT NULL DROP TABLE GROUPBY4.Escuderi
 IF OBJECT_ID('GROUPBY4.Nacionalidad', 'U') IS NOT NULL DROP TABLE GROUPBY4.Nacionalidad;
 IF OBJECT_ID('GROUPBY4.Circuito', 'U') IS NOT NULL DROP TABLE GROUPBY4.Circuito;
 IF OBJECT_ID('GROUPBY4.Pais', 'U') IS NOT NULL DROP TABLE GROUPBY4.Pais;
+
+IF OBJECT_ID('GROUPBY4.escuderia_obtener', 'U') IS NOT NULL DROP TABLE GROUPBY4.escuderia_obtener; 
+IF OBJECT_ID('GROUPBY4.piloto_nombre_apellido', 'U') IS NOT NULL DROP TABLE GROUPBY4.piloto_nombre_apellido; 
+IF OBJECT_ID('GROUPBY4.obtener_id_neum', 'U') IS NOT NULL DROP TABLE GROUPBY4.obtener_id_neum; 
+IF OBJECT_ID('GROUPBY4.piloto_obtener_auto', 'U') IS NOT NULL DROP TABLE GROUPBY4.piloto_obtener_auto; 
+
+DROP FUNCTION GROUPBY4.escuderia_obtener
+DROP FUNCTION GROUPBY4.piloto_nombre_apellido
+DROP FUNCTION GROUPBY4.obtener_id_neum
+DROP FUNCTION GROUPBY4.piloto_obtener_auto
+
+DROP FUNCTION GROUPBY4.incidente_tipo_codigo
+DROP FUNCTION GROUPBY4.incidente_codigo
+DROP FUNCTION GROUPBY4.incidente_existe
+DROP FUNCTION GROUPBY4.bandera_codigo
