@@ -12,6 +12,16 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('GROUPBY4.Circuitos_Mas_Peligrosos', 'V') IS NOT NULL DROP VIEW GROUPBY4.Circuitos_Mas_Peligrosos;
+IF OBJECT_ID('GROUPBY4.Incidentes_Escuderia_Tipo_Sector', 'V') IS NOT NULL DROP VIEW GROUPBY4.Incidentes_Escuderia_Tipo_Sector;
+IF OBJECT_ID('GROUPBY4.Tiempo_Promedio_En_Paradas', 'V') IS NOT NULL DROP VIEW GROUPBY4.Tiempo_Promedio_En_Paradas;
+IF OBJECT_ID('GROUPBY4.Cant_Paradas_Circuito_Escuderia', 'V') IS NOT NULL DROP VIEW GROUPBY4.Cant_Paradas_Circuito_Escuderia;
+IF OBJECT_ID('GROUPBY4.Circuitos_Mayor_Tiempo_Boxes', 'V') IS NOT NULL DROP VIEW GROUPBY4.Circuitos_Mayor_Tiempo_Boxes;
+IF OBJECT_ID('GROUPBY4.Circuitos_mayor_combustible', 'V') IS NOT NULL DROP VIEW GROUPBY4.Circuitos_mayor_combustible;
+IF OBJECT_ID('GROUPBY4.Desgaste', 'V') IS NOT NULL DROP VIEW GROUPBY4.Desgaste;
+IF OBJECT_ID('GROUPBY4.Mayor_velocidad_por_sector ', 'V') IS NOT NULL DROP VIEW GROUPBY4.Mayor_velocidad_por_sector ;
+IF OBJECT_ID('GROUPBY4.Mejor_tiempo_vuelta ', 'V') IS NOT NULL DROP VIEW GROUPBY4.Mejor_tiempo_vuelta;
+
 IF OBJECT_ID('GROUPBY4.BI_Sector', 'U') IS NOT NULL DROP TABLE GROUPBY4.BI_Sector;
 IF OBJECT_ID('GROUPBY4.BI_Componente', 'U') IS NOT NULL DROP TABLE GROUPBY4.BI_Componente;
 IF OBJECT_ID('GROUPBY4.BI_Telemetria', 'U') IS NOT NULL DROP TABLE GROUPBY4.BI_Telemetria;
@@ -26,15 +36,6 @@ IF OBJECT_ID('GROUPBY4.BI_Auto', 'U') IS NOT NULL DROP TABLE GROUPBY4.BI_Auto;
 IF OBJECT_ID('GROUPBY4.BI_Vuelta', 'U') IS NOT NULL DROP TABLE GROUPBY4.BI_Vuelta;
 IF OBJECT_ID('GROUPBY4.BI_Circuito', 'U') IS NOT NULL DROP TABLE GROUPBY4.BI_Circuito;
 
-IF OBJECT_ID('GROUPBY4.Circuitos_Mas_Peligrosos', 'V') IS NOT NULL DROP VIEW GROUPBY4.Circuitos_Mas_Peligrosos;
-IF OBJECT_ID('GROUPBY4.Incidentes_Escuderia_Tipo_Sector', 'V') IS NOT NULL DROP VIEW GROUPBY4.Incidentes_Escuderia_Tipo_Sector;
-IF OBJECT_ID('GROUPBY4.Tiempo_Promedio_En_Paradas', 'V') IS NOT NULL DROP VIEW GROUPBY4.Tiempo_Promedio_En_Paradas;
-IF OBJECT_ID('GROUPBY4.Cant_Paradas_Circuito_Escuderia', 'V') IS NOT NULL DROP VIEW GROUPBY4.Cant_Paradas_Circuito_Escuderia;
-IF OBJECT_ID('GROUPBY4.Circuitos_Mayor_Tiempo_Boxes', 'V') IS NOT NULL DROP VIEW GROUPBY4.Circuitos_Mayor_Tiempo_Boxes;
-IF OBJECT_ID('GROUPBY4.Circuitos_mayor_combustible', 'V') IS NOT NULL DROP VIEW GROUPBY4.Circuitos_mayor_combustible;
-IF OBJECT_ID('GROUPBY4.Desgaste', 'V') IS NOT NULL DROP VIEW GROUPBY4.Desgaste;
-IF OBJECT_ID('GROUPBY4.Mayor_velocidad_por_sector ', 'V') IS NOT NULL DROP VIEW GROUPBY4.Mayor_velocidad_por_sector ;
-IF OBJECT_ID('GROUPBY4.Mejor_tiempo_vuelta ', 'V') IS NOT NULL DROP VIEW GROUPBY4.Mejor_tiempo_vuelta;
 
 --------------------------------------
 ------------ DINMENSIONS -------------
@@ -471,7 +472,7 @@ JOIN GROUPBY4.BI_Vuelta ON tele_numero_vuelta = vuelta_numero AND carr_circuito 
 		escuderia INT NOT NULL, --  (FK)
 		circuito INT NOT NULL, --  (FK)
 		parada INT NOT NULL, -- (FK)
-		tiempo_parada INT NOT NULL
+		tiempo_parada DECIMAL(12,2) NOT NULL
 		PRIMARY KEY(fecha, auto, escuderia, circuito, parada)
 	)
 
