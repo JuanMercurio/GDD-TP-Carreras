@@ -30,7 +30,7 @@ Tener disponible el motor SQL Server.
 
 Cargar la los datos ya registrados: 
 1. Descomprimir el archivo [Database/gd_esquema.Maestra.Table.rar](https://github.com/JuanMercurio/utn-gdd-tp/blob/master/Database/gd_esquema.Maestra.Table.rar "Database/gd_esquema.Maestra.Table.rar") 
-2. Ejecutar el archivo [EjecutarScriptTablaMaestra.bat](https://github.com/JuanMercurio/utn-gdd-tp/blob/master/Database/EjecutarScriptTablaMaestra.bat "EjecutarScriptTablaMaestra.bat"). Si encuentra errores corregir el comando de este script
+2. Ejecutar el archivo [Database/EjecutarScriptTablaMaestra.bat](https://github.com/JuanMercurio/utn-gdd-tp/blob/master/Database/EjecutarScriptTablaMaestra.bat "EjecutarScriptTablaMaestra.bat"). Si encuentra errores corregir el comando de este script
 
 ### Ejecucion de Scripts
 
