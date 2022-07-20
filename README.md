@@ -36,11 +36,11 @@ Cargar la los datos ya registrados:
 
 Primer se debe crear el Modelo Operativo corriendo el script
 
-	script_creacion_inical.sql
+	script_creacion_inicial.sql
 
 Luego podemos crear el Modelo BI corriendo
 
-	script_creacion_inicial_BI.sql
+	script_creacion_BI.sql
 
 Ya podemos hacer consultas libremente sobre el modelo OLPT y el OLAP
 
