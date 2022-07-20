@@ -19,8 +19,8 @@ La implementación de dicho sistema, requiere previamente realizar la migración
 
 Además, se solicita la implementación de un segundo modelo, con sus
 correspondientes procedimientos y vistas, que pueda ser utilizado para la obtención de indicadores de gestión, análisis de escenarios y proyección para la toma de decisiones (Business Intelligence).
-*
-Ver enunciado completo [aca](https://drive.google.com/file/d/14okhmql67K0IYSROQHwo1CJTEW71LtO1/view "aca")*
+
+*Ver enunciado completo [aca](https://drive.google.com/file/d/14okhmql67K0IYSROQHwo1CJTEW71LtO1/view "aca")*
 
 ## Como Correr
 
@@ -34,11 +34,11 @@ Cargar la los datos ya registrados:
 
 ### Ejecucion de Scripts
 
-Primer se debe crear el Modelo Operativo corriendo
+Primer se debe crear el Modelo Operativo corriendo el script
 
 	script_creacion_inical.sql
 
-Luego podemos crear el Modelo BI
+Luego podemos crear el Modelo BI corriendo
 
 	script_creacion_inicial_BI.sql
 
