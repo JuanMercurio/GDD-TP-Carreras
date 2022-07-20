@@ -1,6 +1,6 @@
 <h1 align="center"> Telemetria </h1>
 <p align="center">
-<img src="https://user-images.githubusercontent.com/48862380/179887084-0306fa7c-c7b9-4901-a46f-540c35165692.png") width=80% height=80% >
+<img src="https://user-images.githubusercontent.com/48862380/179887084-0306fa7c-c7b9-4901-a46f-540c35165692.png") width=50% height=50% >
 </p>
 <p align="center"> Trabajo Practico - Gestion de Datos - UTN FRBA 2022 1C  <p>
 
